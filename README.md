@@ -1,2 +1,2 @@
 # DBServer
-MongoDB endpoint for papers 
+Papers database endpoint API to serve MongoDB data
