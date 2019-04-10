@@ -6,11 +6,27 @@ from flask import (
 
 from pymongo import MongoClient
 
+from pandas import DataFrame
+
 app = Flask(__name__, template_folder="templates")
 
 
-class DBServer:
+class PDBServer:
+    '''
+    Class to serve papers information store in a mongodb database throught an API using flask.
+    
+    example:
+    http://0.0.0.0:5000/v1/data?init=1&end&apikey=pl0ok9ij8uh7yg
+    '''
     def __init__(self, ip='0.0.0.0',port=5000,debug=True):
+        '''
+        Contructor to initialize configuration options.
+        
+        Args:
+            ip (str): ip to start the server 
+            port (int): port for the server
+            debug (bool): enable/disable debug mode with extra messages output.
+        '''
         self.ip = ip
         self.port = port
         self.debug = debug
@@ -36,6 +52,9 @@ class DBServer:
             return response    
 
     def start(self):
+        '''
+        Method to start server
+        '''
         app.run(host=self.ip, port=self.port, debug=self.debug)
     
 
