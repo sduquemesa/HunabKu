@@ -18,7 +18,7 @@ class PDBServer:
     example:
     http://0.0.0.0:5000/v1/data?init=1&end&apikey=pl0ok9ij8uh7yg
     '''
-    def __init__(self, ip='0.0.0.0',port=5000,debug=True):
+    def __init__(self,dbname,dbcollection,dbapikey="colavudea",dburi='mongodb://localhost:27017/', ip='0.0.0.0',port=5000,debug=True):
         '''
         Contructor to initialize configuration options.
         
@@ -27,6 +27,10 @@ class PDBServer:
             port (int): port for the server
             debug (bool): enable/disable debug mode with extra messages output.
         '''
+        self.dbname       = dbname
+        self.dbcollection = dbcollection
+        self.dbclient     = MongoClient(dburi)
+        self.db           = self.dbclient[self.dbname]
         self.ip = ip
         self.port = port
         self.debug = debug
@@ -43,13 +47,24 @@ class PDBServer:
             init=request.args.get('init')
             end=request.args.get('end')
             apikey=request.args.get('apikey')
-            data = {"init":init,"end":end}
-            response = app.response_class(
-                response=json.dumps(data),
-                status=200,
-                mimetype='application/json'
-            )
-            return response    
+            if dbapikey == apikey:
+                cursor = self.db[self.dbcollection].find({"_id": {"$gt": int(init),"$lt":int(end)}})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(data),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({"error":"invalid apikey"}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
 
     def start(self):
         '''
@@ -60,5 +75,5 @@ class PDBServer:
 
 # If we're running in stand alone mode, run the application
 if __name__ == '__main__':
-    server=DBServer()
+    server=PDBServer(dbname="RedalycMetadatosArticulos",dbcollection="data")
     server.start()
