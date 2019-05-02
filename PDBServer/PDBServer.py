@@ -5,7 +5,7 @@ from flask import (
 )
 
 from pymongo import MongoClient
-
+import socket
 from pandas import DataFrame
 
 app = Flask(__name__, template_folder="templates")
@@ -75,5 +75,5 @@ class PDBServer:
 
 # If we're running in stand alone mode, run the application
 if __name__ == '__main__':
-    server=PDBServer(dbname="RedalycMetadatosArticulos",dbcollection="data")
+    server=PDBServer(dbname="RedalycMetadatosArticulos",dbcollection="data",ip=socket.gethostbyname(socket.gethostname()),port=8080)
     server.start()
