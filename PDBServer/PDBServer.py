@@ -16,9 +16,9 @@ class PDBServer:
     Class to serve papers information store in a mongodb database throught an API using flask.
     
     example:
-    http://0.0.0.0:5000/v1/data?init=1&end&apikey=pl0ok9ij8uh7yg
+    http://0.0.0.0:5000/data/redalyc?init=1&end&apikey=pl0ok9ij8uh7yg
     '''
-    def __init__(self,dbname,dbcollection,dbapikey="colavudea",dburi='mongodb://localhost:27017/', ip='0.0.0.0',port=5000,debug=True):
+    def __init__(self,dbname,dbapikey="colavudea",dburi='mongodb://localhost:27017/', ip='0.0.0.0',port=5000,debug=True):
         '''
         Contructor to initialize configuration options.
         
@@ -28,7 +28,6 @@ class PDBServer:
             debug (bool): enable/disable debug mode with extra messages output.
         '''
         self.dbname       = dbname
-        self.dbcollection = dbcollection
         self.dbclient     = MongoClient(dburi)
         self.db           = self.dbclient[self.dbname]
         self.ip = ip
@@ -36,11 +35,11 @@ class PDBServer:
         self.debug = debug
 
         # Create the application endpoints
-        @app.route('/data',methods = ['GET'])
-        def data():
+        @app.route('/data/redalyc',methods = ['GET'])
+        def data_redalyc():
             """
             This function just responds to the browser ULR
-            localhost_ip:5000/data
+            localhost_ip:5000//data/redalyc
 
             :return:        json with data 
             """
@@ -48,12 +47,40 @@ class PDBServer:
             end=request.args.get('end')
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db[self.dbcollection].find({"_id": {"$gte": int(init),"$lte":int(end)}})
+                cursor = self.db['data_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
                 data=[]
                 for i in cursor:
                     data.append(i)
                 response = app.response_class(
                     response=json.dumps(data),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({"error":"invalid apikey"}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            
+        @app.route('/stage/redalyc/set',methods = ['GET'])
+        def stage_redalyc():
+            """
+            This function just responds to the browser ULR
+            localhost_ip:5000/stage
+
+            :return:        json with data 
+            """
+            index = request.args.get('index')
+            data = request.args.get('data')
+            data["_id"] = index
+            apikey = request.args.get('apikey')
+            if dbapikey == apikey:
+                self.db['stage_redalyc'].insert(data)
+                response = app.response_class(
+                    response=json.dumps({}),
                     status=200,
                     mimetype='application/json'
                 )
@@ -75,5 +102,5 @@ class PDBServer:
 
 # If we're running in stand alone mode, run the application
 if __name__ == '__main__':
-    server=PDBServer(dbname="RedalycMetadatosArticulos",dbcollection="data",ip=socket.gethostbyname(socket.gethostname()),port=8080)
+    server=PDBServer(dbname="colav",ip=socket.gethostbyname(socket.gethostname()),port=8080)
     server.start()
