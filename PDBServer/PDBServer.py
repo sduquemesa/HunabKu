@@ -65,7 +65,7 @@ class PDBServer:
                 )
                 return response    
             
-        @app.route('/stage/redalyc/set',methods = ['GET'])
+        @app.route('/stage/redalyc/submit',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def stage_redalyc():
             """
             This function just responds to the browser ULR
@@ -73,12 +73,10 @@ class PDBServer:
 
             :return:        json with data 
             """
-            index = request.args.get('index')
             data = request.args.get('data')
-            data["_id"] = index
             apikey = request.args.get('apikey')
             if dbapikey == apikey:
-                self.db['stage_redalyc'].insert(data)
+                self.db['stage_redalyc'].insert(json.loads(data))
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
