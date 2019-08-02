@@ -16,9 +16,9 @@ class PDBServer:
     Class to serve papers information store in a mongodb database throught an API using flask.
     
     example:
-    http://0.0.0.0:5000/v1/data?init=1&end&apikey=pl0ok9ij8uh7yg
+    http://0.0.0.0:5000/data/redalyc?init=1&end&apikey=pl0ok9ij8uh7yg
     '''
-    def __init__(self,dbname,dbcollection,dbapikey="colavudea",dburi='mongodb://localhost:27017/', ip='0.0.0.0',port=5000,debug=True):
+    def __init__(self,dbname,dbapikey="colavudea",dburi='mongodb://localhost:27017/', ip='0.0.0.0',port=5000,debug=True):
         '''
         Contructor to initialize configuration options.
         
@@ -28,7 +28,6 @@ class PDBServer:
             debug (bool): enable/disable debug mode with extra messages output.
         '''
         self.dbname       = dbname
-        self.dbcollection = dbcollection
         self.dbclient     = MongoClient(dburi)
         self.db           = self.dbclient[self.dbname]
         self.ip = ip
@@ -36,11 +35,9 @@ class PDBServer:
         self.debug = debug
 
         # Create the application endpoints
-        @app.route('/data',methods = ['GET'])
-        def data():
+        @app.route('/data/redalyc',methods = ['GET'])
+        def data_redalyc():
             """
-            This function just responds to the browser ULR
-            localhost_ip:5000/data
 
             :return:        json with data 
             """
@@ -48,7 +45,58 @@ class PDBServer:
             end=request.args.get('end')
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db[self.dbcollection].find({"_id": {"$gte": int(init),"$lte":int(end)}})
+                cursor = self.db['data_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(data),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({"error":"invalid apikey"}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            
+        @app.route('/stage/redalyc/submit',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_redalyc():
+            """
+
+            :return:        json with data 
+            """
+            data = request.args.get('data')
+            apikey = request.args.get('apikey')
+            if dbapikey == apikey:
+                self.db['stage_redalyc'].insert(json.loads(data))
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({"error":"invalid apikey"}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+
+        @app.route('/stage/redalyc/read',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_redalyc_read():
+            '''
+            write something meanful here
+            '''
+            init=request.args.get('init')
+            end=request.args.get('end')
+            apikey=request.args.get('apikey')
+            if dbapikey == apikey:
+                cursor = self.db['stage_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -66,6 +114,30 @@ class PDBServer:
                 )
                 return response    
 
+        @app.route('/stage/redalyc/cites/submit',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_cites_redalyc():
+            """
+
+            :return:        json with data 
+            """
+            data = request.args.get('data')
+            apikey = request.args.get('apikey')
+            if dbapikey == apikey:
+                self.db['stage_cites_redalyc'].insert(json.loads(data))
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({"error":"invalid apikey"}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+
     def start(self):
         '''
         Method to start server
@@ -75,5 +147,5 @@ class PDBServer:
 
 # If we're running in stand alone mode, run the application
 if __name__ == '__main__':
-    server=PDBServer(dbname="RedalycMetadatosArticulos",dbcollection="data",ip=socket.gethostbyname(socket.gethostname()),port=8080)
+    server=PDBServer(dbname="colav",ip=socket.gethostbyname(socket.gethostname()),port=8080)
     server.start()

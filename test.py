@@ -1,3 +1,4 @@
 from PDBServer.PDBLoader import PDBLoader
 
-loader=PDBLoader("../Data/RedalycMetadatosArticulos.csv",dbname="RedalycMetadatosArticulos",dbcollection="data")
+loader=PDBLoader(dbname="colav")
+loader.load("../Data/RedalycMetadatosArticulos.csv",dbcollection="data_redalyc")
