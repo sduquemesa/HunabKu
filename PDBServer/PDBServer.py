@@ -115,7 +115,7 @@ class PDBServer:
                 return response    
 
         @app.route('/stage/redalyc/cites/submit',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def stage_redalyc():
+        def stage_cites_redalyc():
             """
 
             :return:        json with data 
