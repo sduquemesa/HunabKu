@@ -87,32 +87,33 @@ class PDBServer:
                 )
                 return response
 
-            @app.route('/stage/redalyc/read',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-            def stage_redalyc_read():
-                '''
-                write something meanful here
-                '''
-                init=request.args.get('init')
-                end=request.args.get('end')
-                apikey=request.args.get('apikey')
-                if dbapikey == apikey:
-                    cursor = self.db['stage_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
-                    data=[]
-                    for i in cursor:
-                        data.append(i)
-                    response = app.response_class(
-                        response=json.dumps(data),
-                        status=200,
-                        mimetype='application/json'
-                    )
-                    return response    
-                else:
-                    response = app.response_class(
-                        response=json.dumps({"error":"invalid apikey"}),
-                        status=200,
-                        mimetype='application/json'
-                    )
-                    return response    
+        @app.route('/stage/redalyc/read',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_redalyc_read():
+            '''
+            write something meanful here
+            '''
+            init=request.args.get('init')
+            end=request.args.get('end')
+            apikey=request.args.get('apikey')
+            if dbapikey == apikey:
+                cursor = self.db['stage_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(data),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({"error":"invalid apikey"}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            
         @app.route('/stage/redalyc/cites/read',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def stage_redalyc_cites_read():
             '''
