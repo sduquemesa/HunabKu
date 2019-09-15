@@ -191,6 +191,30 @@ class PDBServer:
                 )
                 return response
 
+        @app.route('/stage/redalyc/cites/checkpoint',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_checkpoint_cites_redalyc():
+            """
+
+            :return:        json with data 
+            """
+            apikey = request.args.get('apikey')
+            if dbapikey == apikey:
+                count = self.db['stage_cites_redalyc'].find({}).sort([('_id', -1)]).limit(1) #fixed this, is the last id not the number of entries
+                count = list(count)
+                response = app.response_class(
+                    response=json.dumps({"checkpoint":count[0]['_id']}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({"error":"invalid apikey"}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+
     def start(self):
         '''
         Method to start server
