@@ -8,7 +8,7 @@ from pymongo import MongoClient
 import socket
 from pandas import DataFrame
 
-app = Flask(__name__, template_folder="templates")
+app = Flask(__name__, template_folder='templates')
 
 
 class PDBServer:
@@ -18,7 +18,7 @@ class PDBServer:
     example:
     http://0.0.0.0:5000/data/redalyc?init=1&end&apikey=pl0ok9ij8uh7yg
     '''
-    def __init__(self,dbname,dbapikey="colavudea",dburi='mongodb://localhost:27017/', ip='0.0.0.0',port=5000,debug=True):
+    def __init__(self,dbname,dbapikey='colavudea',dburi='mongodb://localhost:27017/', ip='0.0.0.0',port=5000,debug=True):
         '''
         Contructor to initialize configuration options.
         
@@ -33,19 +33,29 @@ class PDBServer:
         self.ip = ip
         self.port = port
         self.debug = debug
+        self.dbapikey = dbapikey
 
-        # Create the application endpoints
-        @app.route('/data/redalyc',methods = ['GET'])
-        def data_redalyc():
-            """
+    def create_endpoints(self,collection):
+        dbapikey = self.dbapikey
 
-            :return:        json with data 
-            """
+        print('Creating endpoints for')
+        # Create the application endpoints dinamically
+        def endpoint_creator(func):
+            l, g = locals().copy(), globals().copy()
+            g['func']=func
+            exec('def {}_{}():\n    return func'.format(func.__name__,collection),g,l)
+            wrapper = eval('{}_{}'.format(func.__name__,collection),g,l)
+            return wrapper
+
+        #@app.route('/data/{}'.format(collection),methods = ['GET'])
+        def data_endpoint():
+            '''
+            '''
             init=request.args.get('init')
             end=request.args.get('end')
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db['data_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
+                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$gte': int(init),'$lte':int(end)}})
                 print(cursor)
                 data=[]
                 for i in cursor:
@@ -59,22 +69,22 @@ class PDBServer:
                 return response    
             else:
                 response = app.response_class(
-                    response=json.dumps({"error":"invalid apikey"}),
+                    response=json.dumps({'error':'invalid apikey'}),
                     status=200,
                     mimetype='application/json'
                 )
                 return response    
-            
-        @app.route('/stage/redalyc/submit',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def stage_redalyc():
-            """
-
-            :return:        json with data 
-            """
+        data_endpoint.__name__ = data_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/data/{}'.format(collection),view_func=data_endpoint,methods = ['GET'])
+                
+        #@app.route('/stage/{}/submit'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_submit_endpoint():
+            '''
+            '''
             data = request.args.get('data')
             apikey = request.args.get('apikey')
             if dbapikey == apikey:
-                self.db['stage_redalyc'].insert(json.loads(data))
+                self.db['stage_{}'.format(collection)].insert(json.loads(data))
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
@@ -83,22 +93,23 @@ class PDBServer:
                 return response    
             else:
                 response = app.response_class(
-                    response=json.dumps({"error":"invalid apikey"}),
+                    response=json.dumps({'error':'invalid apikey'}),
                     status=200,
                     mimetype='application/json'
                 )
                 return response
+        stage_submit_endpoint.__name__ = stage_submit_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/stage/{}/submit'.format(collection),view_func=stage_submit_endpoint,methods = ['GET'])
 
-        @app.route('/stage/redalyc/read',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def stage_redalyc_read():
+        #@app.route('/stage/{}/read'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_read_endpoint():
             '''
-            write something meanful here
             '''
             init=request.args.get('init')
             end=request.args.get('end')
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db['stage_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
+                cursor = self.db['stage_{}'.format(collection)].find({'_id': {'$gte': int(init),'$lte':int(end)}})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -110,22 +121,23 @@ class PDBServer:
                 return response    
             else:
                 response = app.response_class(
-                    response=json.dumps({"error":"invalid apikey"}),
+                    response=json.dumps({'error':'invalid apikey'}),
                     status=200,
                     mimetype='application/json'
                 )
                 return response    
+        stage_read_endpoint.__name__ = stage_read_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/stage/{}/read'.format(collection),view_func=stage_read_endpoint,methods = ['GET'])
             
-        @app.route('/stage/redalyc/cites/read',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def stage_redalyc_cites_read():
+        #@app.route('/stage/{}/cites/read'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_cites_read_endpoint():
             '''
-            write something meanful here
             '''
             init=request.args.get('init')
             end=request.args.get('end')
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db['stage_cites_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
+                cursor = self.db['stage_cites_{}'.format(collection)].find({'_id': {'$gte': int(init),'$lte':int(end)}})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -137,22 +149,24 @@ class PDBServer:
                 return response    
             else:
                 response = app.response_class(
-                    response=json.dumps({"error":"invalid apikey"}),
+                    response=json.dumps({'error':'invalid apikey'}),
                     status=200,
                     mimetype='application/json'
                 )
                 return response    
     
-        @app.route('/stage/redalyc/cites/submit',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def stage_cites_redalyc():
-            """
+        stage_cites_read_endpoint.__name__ = stage_cites_read_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/stage/{}/cites/read'.format(collection),view_func=stage_cites_read_endpoint,methods = ['GET'])
 
-            :return:        json with data 
-            """
+        #@app.route('/stage/{}/cites/submit'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_cites_submit_endpoint():
+            '''
+
+            '''
             data = request.args.get('data')
             apikey = request.args.get('apikey')
             if dbapikey == apikey:
-                self.db['stage_cites_redalyc'].insert(json.loads(data))
+                self.db['stage_cites_{}'.format(collection)].insert(json.loads(data))
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
@@ -161,33 +175,32 @@ class PDBServer:
                 return response    
             else:
                 response = app.response_class(
-                    response=json.dumps({"error":"invalid apikey"}),
+                    response=json.dumps({'error':'invalid apikey'}),
                     status=200,
                     mimetype='application/json'
                 )
                 return response
 
-        @app.route('/stage/redalyc/checkpoint',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def stage_checkpoint_redalyc():
-            """
+        stage_cites_submit_endpoint.__name__ = stage_cites_submit_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/stage/{}/cites/submit'.format(collection),view_func=stage_cites_submit_endpoint,methods = ['GET'])
 
-            :return:        json with data 
-            """
+        #@app.route('/stage/{}/checkpoint'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_checkpoint_endpoint():
+            '''
+            '''
             apikey = request.args.get('apikey')
             if dbapikey == apikey:
-                count = self.db['stage_redalyc'].find({}).sort([('_id', -1)]).limit(1) #fixed this, is the last id not the number of entries
+                count = self.db['stage_{}'.format(collection)].find({}).sort([('_id', -1)]).limit(1) #fixed this, is the last id not the number of entries
                 count = list(count)
                 if len(count) != 0:
-                    #for i in cursor:
-                    #count = self.db['stage_redalyc'].find().count()
                     response = app.response_class(
-                        response=json.dumps({"checkpoint":count[0]['_id']}),
+                        response=json.dumps({'checkpoint':count[0]['_id']}),
                         status=200,
                         mimetype='application/json'
                     )
                 else:
                     response = app.response_class(
-                        response=json.dumps({"checkpoint":0}),
+                        response=json.dumps({'checkpoint':0}),
                         status=200,
                         mimetype='application/json'
                     )
@@ -219,20 +232,17 @@ class PDBServer:
                 return response    
             else:
                 response = app.response_class(
-                    response=json.dumps({"error":"invalid apikey"}),
+                    response=json.dumps({'error':'invalid apikey'}),
                     status=200,
                     mimetype='application/json'
                 )
                 return response
+
+        stage_checkpoint_endpoint.__name__ = stage_checkpoint_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/stage/{}/checkpoint'.format(collection),view_func=stage_checkpoint_endpoint,methods = ['GET'])
 
     def start(self):
         '''
         Method to start server
         '''
         app.run(host=self.ip, port=self.port, debug=self.debug)
-    
-
-# If we're running in stand alone mode, run the application
-if __name__ == '__main__':
-    server=PDBServer(dbname="colav",ip=socket.gethostbyname(socket.gethostname()),port=8080)
-    server.start()
