@@ -46,9 +46,11 @@ class PDBServer:
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
                 cursor = self.db['data_redalyc'].find({"_id": {"$gte": int(init),"$lte":int(end)}})
+                print(cursor)
                 data=[]
                 for i in cursor:
                     data.append(i)
+                    print(data)
                 response = app.response_class(
                     response=json.dumps(data),
                     status=200,
@@ -175,13 +177,21 @@ class PDBServer:
             if dbapikey == apikey:
                 count = self.db['stage_redalyc'].find({}).sort([('_id', -1)]).limit(1) #fixed this, is the last id not the number of entries
                 count = list(count)
-                #for i in cursor:
-                #count = self.db['stage_redalyc'].find().count()
-                response = app.response_class(
-                    response=json.dumps({"checkpoint":count[0]['_id']}),
-                    status=200,
-                    mimetype='application/json'
-                )
+                if len(count) != 0:
+                    #for i in cursor:
+                    #count = self.db['stage_redalyc'].find().count()
+                    response = app.response_class(
+                        response=json.dumps({"checkpoint":count[0]['_id']}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                else:
+                    response = app.response_class(
+                        response=json.dumps({"checkpoint":0}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+
                 return response    
             else:
                 response = app.response_class(
