@@ -14,7 +14,9 @@ parser.add_argument('--port', type=str, default=8080, help='server port (default
 args = parser.parse_args()
 if args.ip == None:
     ip=socket.gethostbyname(socket.gethostname())
-
+else:
+    ip=args.ip
+    
 if __name__ == '__main__':
     server=PDBServer(dbname=args.db,ip=ip,port=args.port)
     server.create_endpoints('redalyc')
