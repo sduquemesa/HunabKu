@@ -214,21 +214,32 @@ class PDBServer:
                 )
                 return response
 
-        @app.route('/stage/redalyc/cites/checkpoint',methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def stage_checkpoint_cites_redalyc():
+        stage_checkpoint_endpoint.__name__ = stage_checkpoint_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/stage/{}/checkpoint'.format(collection),view_func=stage_checkpoint_endpoint,methods = ['GET'])
+
+        #@app.route('/stage/{}/cites/checkpoint'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+        def stage_checkpoint_cites_endpoint():
             """
 
             :return:        json with data 
             """
             apikey = request.args.get('apikey')
             if dbapikey == apikey:
-                count = self.db['stage_cites_redalyc'].find({}).sort([('_id', -1)]).limit(1) #fixed this, is the last id not the number of entries
+                count = self.db['stage_cites_{}'.format(collection)].find({}).sort([('_id', -1)]).limit(1) #fixed this, is the last id not the number of entries
                 count = list(count)
-                response = app.response_class(
-                    response=json.dumps({"checkpoint":count[0]['_id']}),
-                    status=200,
-                    mimetype='application/json'
-                )
+                if len(count) != 0:
+                    response = app.response_class(
+                        response=json.dumps({"checkpoint":count[0]['_id']}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                else:
+                    response = app.response_class(
+                        response=json.dumps({"checkpoint":0}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+
                 return response    
             else:
                 response = app.response_class(
@@ -238,8 +249,8 @@ class PDBServer:
                 )
                 return response
 
-        stage_checkpoint_endpoint.__name__ = stage_checkpoint_endpoint.__name__+'_'+collection 
-        app.add_url_rule('/stage/{}/checkpoint'.format(collection),view_func=stage_checkpoint_endpoint,methods = ['GET'])
+        stage_checkpoint_cites_endpoint.__name__ = stage_checkpoint_cites_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/stage/{}/cites/checkpoint'.format(collection),view_func=stage_checkpoint_cites_endpoint,methods = ['GET'])
 
     def start(self):
         '''
