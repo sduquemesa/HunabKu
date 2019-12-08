@@ -13,8 +13,9 @@ class PDBLoader:
         if dbdrop:
             self.dbclient.drop_database(dbname)
         
-    def load(self,filename,dbcollection):
+    def load(self,filename,dbcollection,drop=True):
         dbcollection='data_'+dbcollection
+        self.db[dbcollection].drop()
         if filename is None:
             print("Error: file is not provided!",file=sys.stderr)
             sys.exit(1)
