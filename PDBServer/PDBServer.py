@@ -49,11 +49,9 @@ class PDBServer:
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
                 cursor = self.db['data_{}'.format(collection)].find({'_id': {'$gte': int(init),'$lte':int(end)}})
-                print(cursor)
                 data=[]
                 for i in cursor:
                     data.append(i)
-                    print(data)
                 response = app.response_class(
                     response=json.dumps(data),
                     status=200,
