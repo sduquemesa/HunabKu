@@ -22,6 +22,7 @@ if __name__ == '__main__':
     server.create_endpoints('redalyc')
     server.create_endpoints('udea')
     server.create_endpoints('colciencias')
+    server.create_endpoints('estudios_gerenciales')
     server.start()
 
 
