@@ -21,6 +21,8 @@ if __name__ == '__main__':
     server=PDBServer(dbname=args.db,ip=ip,port=args.port)
     server.create_endpoints('redalyc')
     server.create_endpoints('udea')
+    server.create_endpoints('colciencias')
+    server.create_endpoints('estudios_gerenciales')
     server.start()
 
 
