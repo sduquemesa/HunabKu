@@ -183,25 +183,63 @@ class PDBServer:
         #@app.route('/stage/{}/checkpoint'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def stage_checkpoint_endpoint():
             '''
+            Return values to restore the process execution
+
             '''
             apikey = request.args.get('apikey')
             if dbapikey == apikey:
-                count = self.db['stage_{}'.format(collection)].find({}).sort([('_id', -1)]).limit(1) #fixed this, is the last id not the number of entries
-                count = list(count)
-                if len(count) != 0:
-                    response = app.response_class(
-                        response=json.dumps({'checkpoint':count[0]['_id']}),
-                        status=200,
-                        mimetype='application/json'
-                    )
-                else:
-                    response = app.response_class(
-                        response=json.dumps({'checkpoint':0}),
-                        status=200,
-                        mimetype='application/json'
-                    )
+                ckeckpoint = True # False if any error or all was dowloaded
+                error=False 
+                mgs=""
+                ckp_ids = [] #_id(s) for checkpoint 
 
-                return response    
+                # reading collection data
+                npapers = self.db['data_{}'.format(collection)].count() #number of papers in data collection 
+                if npapers == 0:
+                    error = True
+                    ckeckpoint = False
+                    error_mgs="Not elements found in data_"+collection
+                    response = app.response_class(
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                    return response
+
+                ids = self.db['stage_{}'.format(collection)].find({},{'_id':1})
+                ids_df = DataFrame.from_records(ids)
+
+                if len(ids_df.values) == npapers: # all the papers was downloaded
+                    ckeckpoint = False
+                    mgs = "All papers already downloaded for data_"+collection
+                    response = app.response_class(
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                    return response
+
+
+                if ids_df.empty:
+                    ckp_ids = [i for i in range(npapers)]
+                    mgs = 'stage_'+collection+' is empty'
+                    response = app.response_class(
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                    return response
+
+                values=ids_df['_id'].values
+                ckp_ids=sorted(set(range(values[0], values[-1])) - set(values))  
+                mgs = 'missing values for stage_'+collection
+                response = app.response_class(
+                    response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+
             else:
                 response = app.response_class(
                     response=json.dumps({"error":"invalid apikey"}),
