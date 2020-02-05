@@ -197,7 +197,7 @@ class PDBServer:
                 if npapers == 0:
                     error = True
                     ckeckpoint = False
-                    error_mgs="Not elements found in data_"+collection
+                    mgs="Not elements found in data_"+collection
                     response = app.response_class(
                         response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
                         status=200,
@@ -230,7 +230,7 @@ class PDBServer:
                     return response
 
                 values=ids_df['_id'].values
-                ckp_ids=sorted(set(range(values[0], values[-1])) - set(values))  
+                ckp_ids=sorted(set(range(0, npapers)) - set(values))  
                 mgs = 'missing values for stage_'+collection
                 response = app.response_class(
                     response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
