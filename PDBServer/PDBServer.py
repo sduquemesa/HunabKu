@@ -44,11 +44,10 @@ class PDBServer:
         def data_endpoint():
             '''
             '''
-            init=request.args.get('init')
-            end=request.args.get('end')
+            ids=request.args.get('ids')
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$gte': int(init),'$lte':int(end)}})
+                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$in': json.loads(ids)}})
                 data=[]
                 for i in cursor:
                     data.append(i)
