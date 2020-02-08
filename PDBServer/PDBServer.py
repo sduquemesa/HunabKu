@@ -34,13 +34,93 @@ class PDBServer:
         self.port = port
         self.debug = debug
         self.dbapikey = dbapikey
+    def create_cache_endpoints(self):
+        print('Creating endpoints for caches')
+        def cites_cache_submit():
+            '''
+            endpoint to submit cites links
+            '''
+            data = request.args.get('data')
+            collection = request.args.get('collection')
+            print(collection)
+            apikey=request.args.get('apikey')
+            if self.dbapikey == apikey:
+                cursor = self.db['cache_cites_{}'.format(collection)].insert(json.loads(data))
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+        app.add_url_rule('/cache/cites/submit',view_func=cites_cache_submit,methods = ['GET'])
+        print('-    endpoint = {}'.format('/cache/cites/submit'))
+        
+        def cites_cache_read():
+            '''
+            endpoint to read cites links from cache
+            '''
+            collection = request.args.get('collection')
+            apikey=request.args.get('apikey')
+            if self.dbapikey == apikey:
+                cursor = self.db['cache_cites_{}'.format(collection)].find({'downloaded':1})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(data),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+        app.add_url_rule('/cache/cites/read',view_func=cites_cache_read,methods = ['GET'])
+        print('-    endpoint = {}'.format('/cache/cites/read'))
+        
+        def cites_update():
+            '''
+            endpoint to update cites links from cache
+            '''
+            _id = request.args.get('_id') #object id
+            apikey=request.args.get('apikey')
+            if self.dbapikey == apikey:
+                cursor = self.db['cache_cites'].update({'_id':_id},{'download':collection})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+        app.add_url_rule('/cache/cites/update',view_func=cites_update,methods = ['GET'])
+        print('-    endpoint = {}'.format('/cache/cites/update'))
 
     def create_endpoints(self,collection):
         dbapikey = self.dbapikey
 
         print('Creating endpoints for {}'.format(collection))
 
-        #@app.route('/data/{}'.format(collection),methods = ['GET'])
         def data_endpoint():
             '''
             '''
@@ -101,7 +181,10 @@ class PDBServer:
             end=request.args.get('end')
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db['stage_{}'.format(collection)].find({'_id': {'$gte': int(init),'$lte':int(end)}})
+                if int(end) == -1:
+                    cursor = self.db['stage_{}'.format(collection)].find()
+                else:
+                    cursor = self.db['stage_{}'.format(collection)].find({'_id': {'$gte': int(init),'$lte':int(end)}})
                 data=[]
                 for i in cursor:
                     data.append(i)
