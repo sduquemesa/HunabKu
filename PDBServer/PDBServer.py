@@ -8,6 +8,15 @@ from pymongo import MongoClient
 import socket
 from pandas import DataFrame
 
+from bson import ObjectId
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        return json.JSONEncoder.default(self, o)
+
+
 app = Flask(__name__, template_folder='templates')
 
 
@@ -69,12 +78,12 @@ class PDBServer:
             collection = request.args.get('collection')
             apikey=request.args.get('apikey')
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites_{}'.format(collection)].find({'downloaded':1})
+                cursor = self.db['cache_cites_{}'.format(collection)].find({'downloaded':0})
                 data=[]
                 for i in cursor:
                     data.append(i)
                 response = app.response_class(
-                    response=json.dumps(data),
+                    response=json.dumps(JSONEncoder().encode(data)),
                     status=200,
                     mimetype='application/json'
                 )
@@ -89,17 +98,15 @@ class PDBServer:
         app.add_url_rule('/cache/cites/read',view_func=cites_cache_read,methods = ['GET'])
         print('-    endpoint = {}'.format('/cache/cites/read'))
         
-        def cites_update():
+        def cites_cache_update():
             '''
             endpoint to update cites links from cache
             '''
             _id = request.args.get('_id') #object id
+            collection = request.args.get('collection')
             apikey=request.args.get('apikey')
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites'].update({'_id':_id},{'download':collection})
-                data=[]
-                for i in cursor:
-                    data.append(i)
+                cursor = self.db['cache_cites_{}'.format(collection)].update_one({'_id':ObjectId(json.loads(_id))},{"$set":{'downloaded':1}})
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
@@ -113,7 +120,7 @@ class PDBServer:
                     mimetype='application/json'
                 )
                 return response    
-        app.add_url_rule('/cache/cites/update',view_func=cites_update,methods = ['GET'])
+        app.add_url_rule('/cache/cites/update',view_func=cites_cache_update,methods = ['GET'])
         print('-    endpoint = {}'.format('/cache/cites/update'))
 
     def create_endpoints(self,collection):
@@ -337,26 +344,20 @@ class PDBServer:
         #@app.route('/stage/{}/cites/checkpoint'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def stage_checkpoint_cites_endpoint():
             """
-
+            return remaning links to download for citations
             :return:        json with data 
             """
             apikey = request.args.get('apikey')
-            if dbapikey == apikey:
-                count = self.db['stage_cites_{}'.format(collection)].find({}).sort([('_id', -1)]).limit(1) #fixed this, is the last id not the number of entries
-                count = list(count)
-                if len(count) != 0:
-                    response = app.response_class(
-                        response=json.dumps({"checkpoint":count[0]['_id']}),
-                        status=200,
-                        mimetype='application/json'
-                    )
-                else:
-                    response = app.response_class(
-                        response=json.dumps({"checkpoint":0}),
-                        status=200,
-                        mimetype='application/json'
-                    )
-
+            if self.dbapikey == apikey:
+                cursor = self.db['cache_cites_{}'.format(collection)].find({'downloaded':0})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(JSONEncoder().encode(data)),
+                    status=200,
+                    mimetype='application/json'
+                )
                 return response    
             else:
                 response = app.response_class(
@@ -364,7 +365,7 @@ class PDBServer:
                     status=200,
                     mimetype='application/json'
                 )
-                return response
+                return response    
 
         stage_checkpoint_cites_endpoint.__name__ = stage_checkpoint_cites_endpoint.__name__+'_'+collection 
         app.add_url_rule('/stage/{}/cites/checkpoint'.format(collection),view_func=stage_checkpoint_cites_endpoint,methods = ['GET'])
