@@ -65,6 +65,8 @@ def main():
         install_requires=[
             'pymongo',
             'flask',
+            'pandas',
+            'numpy'
         ],
     )
 
