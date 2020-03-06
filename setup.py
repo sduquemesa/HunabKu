@@ -66,7 +66,8 @@ def main():
             'pymongo',
             'flask',
             'pandas',
-            'numpy'
+            'numpy',
+            'requests'
         ],
     )
 
