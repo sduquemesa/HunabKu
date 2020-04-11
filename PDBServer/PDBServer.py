@@ -43,6 +43,83 @@ class PDBServer:
         self.port = port
         self.debug = debug
         self.dbapikey = dbapikey
+        
+    def create_gsquery_endpoints(self):
+
+        def gsquery_read_endpoint():
+            apikey=request.args.get('apikey')
+
+            keyword=request.args.get('keyword')
+            
+            if self.dbapikey == apikey:
+                cursor = self.db['gsquery'].find({"downloaded":0})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                print(data)
+                response = app.response_class(
+                    response=json.dumps(JSONEncoder().encode(data)),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+        app.add_url_rule('/gsquery/read',view_func=gsquery_read_endpoint,methods = ['GET'])
+        print('-    endpoint = {}'.format('/gsquery/read'))
+
+        def gsquery_submit_endpoint():
+            #init=request.args.get('init')
+            #end=request.args.get('end')
+            data = request.args.get('data')
+            apikey=request.args.get('apikey')
+            if self.dbapikey == apikey:
+                self.db['gsquery'].insert(json.loads(data))
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+        app.add_url_rule('/gsquery/submit',view_func=gsquery_submit_endpoint,methods = ['GET'])
+        print('-    endpoint = {}'.format('/gsquery/submit'))
+
+        def gsquery_update_endpoint():
+            #init=request.args.get('init')
+            #end=request.args.get('end')
+            id=request.args.get('id')
+            data = request.args.get('data')
+            apikey=request.args.get('apikey')
+            if self.dbapikey == apikey:
+                self.db['gsquery'].update_one({"_id":ObjectId(id)},{"$set":json.loads(data)})
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+        app.add_url_rule('/gsquery/update',view_func=gsquery_update_endpoint,methods = ['GET'])
+        print('-    endpoint = {}'.format('/gsquery/update'))
+
     def create_cache_endpoints(self):
         print('Creating endpoints for caches')
         def cites_cache_submit():

@@ -20,6 +20,7 @@ else:
 if __name__ == '__main__':
     server=PDBServer(dbname=args.db,ip=ip,port=args.port)
     server.create_cache_endpoints()
+    server.create_gsquery_endpoints()
     server.create_endpoints('redalyc')
     server.create_endpoints('udea')
     server.create_endpoints('colciencias')
