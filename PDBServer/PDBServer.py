@@ -200,13 +200,69 @@ class PDBServer:
         app.add_url_rule('/cache/cites/update',view_func=cites_cache_update,methods = ['GET'])
         print('-    endpoint = {}'.format('/cache/cites/update'))
 
+    def create_data_endpoint(self,collection):
+        def data_submit_endpoint():
+            data = request.args.get('data')
+            apikey = request.args.get('apikey')
+            if dbapikey == apikey:
+                self.db['data_{}'.format(collection)].insert(json.loads(data))
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+        data_submit_endpoint.__name__ = data_submit_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/data/{}/submit'.format(collection),view_func=data_submit_endpoint,methods = ['GET'])
+        print('-    endpoint = {}'.format('/data/{}/submit'.format(collection)))
+
+        def data_read_endpoint():
+            '''
+
+            '''
+            ids=request.args.get('ids')
+            apikey=request.args.get('apikey')
+            if dbapikey == apikey:
+                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$in': json.loads(ids)}})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(data),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+        data_read_endpoint.__name__ = data_read_endpoint.__name__+'_'+collection 
+        app.add_url_rule('/data/{}/read'.format(collection),view_func=data_read_endpoint,methods = ['GET'])
+        print('-    endpoint = {}'.format('/data/{}/read'.format(collection)))
+
+
+
     def create_endpoints(self,collection):
         dbapikey = self.dbapikey
 
         print('Creating endpoints for {}'.format(collection))
-
+        
+        self.create_data_endpoint(collection)
+        
         def data_endpoint():
             '''
+            this is a special endpoint for checkout in GSLookUp class, see data/submit/read
             '''
             ids=request.args.get('ids')
             apikey=request.args.get('apikey')
@@ -232,6 +288,7 @@ class PDBServer:
         app.add_url_rule('/data/{}'.format(collection),view_func=data_endpoint,methods = ['GET'])
         print('-    endpoint = {}'.format('/data/{}'.format(collection)))
                 
+
         #@app.route('/stage/{}/submit'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def stage_submit_endpoint():
             '''
