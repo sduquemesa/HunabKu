@@ -201,6 +201,7 @@ class PDBServer:
         print('-    endpoint = {}'.format('/cache/cites/update'))
 
     def create_data_endpoint(self,collection):
+        dbapikey = self.dbapikey
         def data_submit_endpoint():
             data = request.args.get('data')
             apikey = request.args.get('apikey')
