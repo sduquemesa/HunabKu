@@ -49,10 +49,10 @@ class PDBServer:
         def gsquery_read_endpoint():
             apikey=request.args.get('apikey')
 
-            keyword=request.args.get('keyword')
+            collection=request.args.get('collection')
             
             if self.dbapikey == apikey:
-                cursor = self.db['gsquery'].find({"downloaded":0})
+                cursor = self.db['gsquery'].find({'collection':collection,'downloaded':0})
                 data=[]
                 for i in cursor:
                     data.append(i)
