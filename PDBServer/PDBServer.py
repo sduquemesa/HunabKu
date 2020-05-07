@@ -418,7 +418,12 @@ class PDBServer:
                 ckp_ids = [] #_id(s) for checkpoint 
 
                 # reading collection data
-                npapers = self.db['data_{}'.format(collection)].count() #number of papers in data collection 
+                #npapers = self.db['data_{}'.format(collection)].count() #number of papers in data collection
+                try:
+                    data_ids=set([reg["_id"] for reg in db['data_{}'.format(collection].find({},{"_id":1})]) 
+                except:
+                    data_ids=[]
+                npapers=len(data_ids)
                 if npapers == 0:
                     error = True
                     ckeckpoint = False
@@ -430,10 +435,14 @@ class PDBServer:
                     )
                     return response
 
-                ids = self.db['stage_{}'.format(collection)].find({},{'_id':1})
-                ids_df = DataFrame.from_records(ids)
+                #ids = self.db['stage_{}'.format(collection)].find({},{'_id':1})
+                #ids_df = DataFrame.from_records(ids)
+                try:
+                    stage_ids = set(self.db['stage_{}'.format(collection)].find({},{'_id':1}))
+                except:
+                    stage_ids=[]
 
-                if len(ids_df.values) == npapers: # all the papers was downloaded
+                if len(stage_ids) == npapers: # all the papers were downloaded
                     ckeckpoint = False
                     mgs = "All papers already downloaded for data_"+collection
                     response = app.response_class(
@@ -444,8 +453,8 @@ class PDBServer:
                     return response
 
 
-                if ids_df.empty:
-                    ckp_ids = [i for i in range(npapers)]
+                if len(stage_ids)==0:
+                    ckp_ids = list(data_ids)
                     mgs = 'stage_'+collection+' is empty'
                     response = app.response_class(
                         response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
@@ -454,8 +463,9 @@ class PDBServer:
                     )
                     return response
 
-                values=ids_df['_id'].values
-                ckp_ids=sorted(set(range(0, npapers)) - set(values))  
+                #values=ids_df['_id'].values
+                #ckp_ids=sorted(set(range(0, npapers)) - set(values))  
+                ckp_ids=list(data_ids-data_ids.intersection(stage_ids))
                 mgs = 'missing values for stage_'+collection
                 response = app.response_class(
                     response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
