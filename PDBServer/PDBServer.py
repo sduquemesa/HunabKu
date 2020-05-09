@@ -228,10 +228,12 @@ class PDBServer:
             '''
 
             '''
-            ids=request.args.get('ids')
+            ids=json.loads(request.args.get('ids'))
+            #print(ids)
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$in': json.loads(ids)}})
+                #oids=[ObjectId(iid) for iid in ids]
+                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$in': ids}})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -265,18 +267,21 @@ class PDBServer:
             '''
             this is a special endpoint for checkout in GSLookUp class, see data/submit/read
             '''
-            ids=request.args.get('ids')
+            ids=json.loads(request.args.get('ids').replace("'","\""))
+            oids=[ObjectId(iid) for iid in ids]
             apikey=request.args.get('apikey')
             if dbapikey == apikey:
-                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$in': json.loads(ids)}})
+                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$in': oids}})
                 data=[]
                 for i in cursor:
                     data.append(i)
                 response = app.response_class(
-                    response=json.dumps(data),
+                    response=json.dumps(JSONEncoder().encode(data)),
                     status=200,
                     mimetype='application/json'
                 )
+                if not data:
+                    print("data esta vacio")
                 return response    
             else:
                 response = app.response_class(
@@ -297,7 +302,9 @@ class PDBServer:
             data = request.args.get('data')
             apikey = request.args.get('apikey')
             if dbapikey == apikey:
-                self.db['stage_{}'.format(collection)].insert(json.loads(data))
+                jdata=json.loads(data)
+                jdata["_id"]=ObjectId(jdata["_id"])
+                self.db['stage_{}'.format(collection)].insert(jdata)
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
@@ -414,22 +421,22 @@ class PDBServer:
             if dbapikey == apikey:
                 ckeckpoint = True # False if any error or all was dowloaded
                 error=False 
-                mgs=""
+                msg=""
                 ckp_ids = [] #_id(s) for checkpoint 
 
                 # reading collection data
                 #npapers = self.db['data_{}'.format(collection)].count() #number of papers in data collection
                 try:
-                    data_ids=set([reg["_id"] for reg in db['data_{}'.format(collection].find({},{"_id":1})]) 
+                    data_ids=set([str(reg["_id"]) for reg in self.db['data_{}'.format(collection)].find({},{"_id":1})]) 
                 except:
                     data_ids=[]
                 npapers=len(data_ids)
                 if npapers == 0:
                     error = True
                     ckeckpoint = False
-                    mgs="Not elements found in data_"+collection
+                    msg="No elements found in data_"+collection
                     response = app.response_class(
-                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
                         status=200,
                         mimetype='application/json'
                     )
@@ -438,15 +445,15 @@ class PDBServer:
                 #ids = self.db['stage_{}'.format(collection)].find({},{'_id':1})
                 #ids_df = DataFrame.from_records(ids)
                 try:
-                    stage_ids = set(self.db['stage_{}'.format(collection)].find({},{'_id':1}))
+                    stage_ids = set([str(reg["_id"]) for reg in self.db['stage_{}'.format(collection)].find({},{'_id':1})])
                 except:
                     stage_ids=[]
 
                 if len(stage_ids) == npapers: # all the papers were downloaded
                     ckeckpoint = False
-                    mgs = "All papers already downloaded for data_"+collection
+                    msg = "All papers already downloaded for data_"+collection
                     response = app.response_class(
-                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
                         status=200,
                         mimetype='application/json'
                     )
@@ -455,9 +462,9 @@ class PDBServer:
 
                 if len(stage_ids)==0:
                     ckp_ids = list(data_ids)
-                    mgs = 'stage_'+collection+' is empty'
+                    msg = 'stage_'+collection+' is empty'
                     response = app.response_class(
-                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
                         status=200,
                         mimetype='application/json'
                     )
@@ -466,9 +473,9 @@ class PDBServer:
                 #values=ids_df['_id'].values
                 #ckp_ids=sorted(set(range(0, npapers)) - set(values))  
                 ckp_ids=list(data_ids-data_ids.intersection(stage_ids))
-                mgs = 'missing values for stage_'+collection
+                msg = 'missing values for stage_'+collection
                 response = app.response_class(
-                    response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'mgs':mgs}),
+                    response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
                     status=200,
                     mimetype='application/json'
                 )
