@@ -340,7 +340,7 @@ class PDBServer:
                 for i in cursor:
                     data.append(i)
                 response = app.response_class(
-                    response=json.dumps(data),
+                    response=json.dumps(JSONEncoder().encode(data)),
                     status=200,
                     mimetype='application/json'
                 )
