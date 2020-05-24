@@ -49,11 +49,11 @@ class PDBServer:
 
         def gsquery_read_endpoint():
             apikey=request.args.get('apikey')
-
-            collection=request.args.get('collection')
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
             
             if self.dbapikey == apikey:
-                cursor = self.db['gsquery'].find({'collection':collection,'downloaded':0})
+                cursor = self.db['gsquery'].find({'downloaded':0,'empty':0})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -79,6 +79,8 @@ class PDBServer:
             #end=request.args.get('end')
             data = request.args.get('data')
             apikey=request.args.get('apikey')
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
             if self.dbapikey == apikey:
                 self.db['gsquery'].insert(json.loads(data))
                 response = app.response_class(
@@ -103,6 +105,9 @@ class PDBServer:
             id=request.args.get('id')
             data = request.args.get('data')
             apikey=request.args.get('apikey')
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
+
             if self.dbapikey == apikey:
                 self.db['gsquery'].update_one({"_id":ObjectId(id)},{"$set":json.loads(data)})
                 response = app.response_class(
