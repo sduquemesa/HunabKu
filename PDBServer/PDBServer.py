@@ -129,6 +129,8 @@ class PDBServer:
             '''
             data = request.args.get('data')
             apikey = request.args.get('apikey')
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
             if self.dbapikey == apikey:
                 self.db['cache_cites'].insert(json.loads(data))
                 response = app.response_class(
@@ -180,8 +182,12 @@ class PDBServer:
             '''
             _id = request.args.get('_id') #object id
             apikey = request.args.get('apikey')
+            empty = request.args.get('empty')
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
+
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites'].update_one({'_id':ObjectId(json.loads(_id))},{"$set":{'downloaded':1}})
+                self.db['cache_cites'].update_one({'_id':ObjectId(json.loads(_id))},{"$set":{'downloaded':1,'empty':empty}})
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
@@ -204,10 +210,11 @@ class PDBServer:
             :return:        json with data 
             """
             apikey = request.args.get('apikey')
-            tag = request.args.get('tag')
-            
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
+           
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites'].find({'tag':tag,'downloaded':0,'empty':0}) #to get only cites not downloaded and not set like empty page
+                cursor = self.db['cache_cites'].find({'downloaded':0,'empty':0}) 
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -341,7 +348,7 @@ class PDBServer:
         stage_submit_endpoint.__name__ = stage_submit_endpoint.__name__
         app.add_url_rule('/stage/submit',view_func=stage_submit_endpoint,methods = ['GET'])
         print('-    endpoint = /stage/submit')
-        
+
         def stage_checkpoint_endpoint():
             '''
             Return values to restore the process execution
@@ -456,31 +463,15 @@ class PDBServer:
         app.add_url_rule('/data',view_func=data_endpoint,methods = ['GET'])
         print('-    endpoint = /data')
                 
-
-
-
-    def create_endpoints(self,collection):
-        dbapikey = self.dbapikey
-
-        print('Creating endpoints for {}'.format(collection))
-        
-        #self.create_data_endpoint(collection)
-        
-
-        #@app.route('/stage/{}/submit'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-
-        #@app.route('/stage/{}/read'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def stage_read_endpoint():
             '''
             '''
-            init=request.args.get('init')
-            end=request.args.get('end')
             apikey=request.args.get('apikey')
-            if dbapikey == apikey:
-                if int(end) == -1:
-                    cursor = self.db['stage_{}'.format(collection)].find()
-                else:
-                    cursor = self.db['stage_{}'.format(collection)].find({'_id': {'$gte': int(init),'$lte':int(end)}})
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
+
+            if self.dbapikey == apikey:
+                cursor = self.db['stage'].find()
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -497,10 +488,24 @@ class PDBServer:
                     mimetype='application/json'
                 )
                 return response    
-        stage_read_endpoint.__name__ = stage_read_endpoint.__name__+'_'+collection 
-        app.add_url_rule('/stage/{}/read'.format(collection),view_func=stage_read_endpoint,methods = ['GET'])
-        print('-    endpoint = {}'.format('/stage/{}/read'.format(collection)))
+        stage_read_endpoint.__name__ = stage_read_endpoint.__name__
+        app.add_url_rule('/stage/read',view_func=stage_read_endpoint,methods = ['GET'])
+        print('-    endpoint = /stage/read')
             
+
+
+    def create_endpoints(self,collection):
+        dbapikey = self.dbapikey
+
+        print('Creating endpoints for {}'.format(collection))
+        
+        #self.create_data_endpoint(collection)
+        
+
+        #@app.route('/stage/{}/submit'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+
+        #@app.route('/stage/{}/read'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
+
         #@app.route('/stage/{}/cites/read'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def data_cites_read_endpoint():
             '''
