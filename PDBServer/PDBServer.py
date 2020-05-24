@@ -37,6 +37,7 @@ class PDBServer:
             debug (bool): enable/disable debug mode with extra messages output.
         '''
         self.dbname       = dbname
+        self.dburi        = dburi
         self.dbclient     = MongoClient(dburi)
         self.db           = self.dbclient[self.dbname]
         self.ip = ip
@@ -317,6 +318,9 @@ class PDBServer:
             '''
             data = request.args.get('data')
             apikey = request.args.get('apikey')
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
+
             if self.dbapikey == apikey:
                 jdata=json.loads(data)
                 jdata["_id"]=ObjectId(jdata["_id"])
@@ -334,18 +338,18 @@ class PDBServer:
                     mimetype='application/json'
                 )
                 return response
-        stage_submit_endpoint.__name__ = stage_submit_endpoint.__name__ 
+        stage_submit_endpoint.__name__ = stage_submit_endpoint.__name__
         app.add_url_rule('/stage/submit',view_func=stage_submit_endpoint,methods = ['GET'])
         print('-    endpoint = /stage/submit')
-
+        
         def stage_checkpoint_endpoint():
             '''
             Return values to restore the process execution
 
             '''
             apikey = request.args.get('apikey')
-            tag = request.args.get('tag')
-            
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
             if self.dbapikey == apikey:
                 ckeckpoint = True # False if any error or all was dowloaded
                 error=False 
@@ -355,14 +359,14 @@ class PDBServer:
                 # reading collection data
                 #npapers = self.db['data_{}'.format(collection)].count() #number of papers in data collection
                 try:
-                    data_ids=set([str(reg["_id"]) for reg in self.db['data_{}'.format(tag)].find({},{"_id":1})]) 
+                    data_ids=set([str(reg["_id"]) for reg in self.db['data'].find({},{"_id":1})]) 
                 except:
                     data_ids=[]
                 npapers=len(data_ids)
                 if npapers == 0:
                     error = True
                     ckeckpoint = False
-                    msg="No elements found in data_"+tag
+                    msg="No elements found in database "+db+' collection data'
                     response = app.response_class(
                         response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
                         status=200,
@@ -377,7 +381,7 @@ class PDBServer:
 
                 if len(stage_ids) == npapers: # all the papers were downloaded
                     ckeckpoint = False
-                    msg = "All papers already downloaded for data_"+tag
+                    msg = "All papers already downloaded for database "+db+' collection data'
                     response = app.response_class(
                         response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
                         status=200,
@@ -388,7 +392,7 @@ class PDBServer:
 
                 if len(stage_ids)==0:
                     ckp_ids = list(data_ids)
-                    msg = 'stage with tag='+tag+' is empty'
+                    msg = 'stage in database '+db+' is empty'
                     response = app.response_class(
                         response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
                         status=200,
@@ -397,7 +401,7 @@ class PDBServer:
                     return response
 
                 ckp_ids=list(data_ids-data_ids.intersection(stage_ids))
-                msg = 'missing values for stage with tag='+tag
+                msg = 'missing values for stage with database '+db+' collection data'
                 response = app.response_class(
                     response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
                     status=200,
@@ -423,17 +427,16 @@ class PDBServer:
             '''
             ids=json.loads(request.args.get('ids').replace("'","\""))
             oids=[ObjectId(iid) for iid in ids]
-            apikey=request.args.get('apikey')
-            tag=request.args.get('tag')
-            #db=request.args.get('db')
-            #self.db = self.dbclient[db]
-
+            apikey = request.args.get('apikey')
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
             
             if self.dbapikey == apikey:
-                cursor = self.db['data_{}'.format(tag)].find({'_id': {'$in': oids}})
+                cursor = self.db['data'].find({'_id': {'$in': oids}})
                 data=[]
                 for i in cursor:
                     data.append(i)
+                print(data)
                 response = app.response_class(
                     response=json.dumps(JSONEncoder().encode(data)),
                     status=200,
@@ -450,9 +453,10 @@ class PDBServer:
                 )
                 return response    
         data_endpoint.__name__ = data_endpoint.__name__ 
-        app.add_url_rule('/data/',view_func=data_endpoint,methods = ['GET'])
-        print('-    endpoint = /data/')
+        app.add_url_rule('/data',view_func=data_endpoint,methods = ['GET'])
+        print('-    endpoint = /data')
                 
+
 
 
     def create_endpoints(self,collection):
@@ -464,31 +468,6 @@ class PDBServer:
         
 
         #@app.route('/stage/{}/submit'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def stage_submit_endpoint():
-            '''
-            '''
-            data = request.args.get('data')
-            apikey = request.args.get('apikey')
-            if dbapikey == apikey:
-                jdata=json.loads(data)
-                jdata["_id"]=ObjectId(jdata["_id"])
-                self.db['stage_{}'.format(collection)].insert(jdata)
-                response = app.response_class(
-                    response=json.dumps({}),
-                    status=200,
-                    mimetype='application/json'
-                )
-                return response    
-            else:
-                response = app.response_class(
-                    response=json.dumps({'error':'invalid apikey'}),
-                    status=200,
-                    mimetype='application/json'
-                )
-                return response
-        stage_submit_endpoint.__name__ = stage_submit_endpoint.__name__+'_'+collection 
-        app.add_url_rule('/stage/{}/submit'.format(collection),view_func=stage_submit_endpoint,methods = ['GET'])
-        print('-    endpoint = {}'.format('/stage/{}/submit'.format(collection)))
 
         #@app.route('/stage/{}/read'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def stage_read_endpoint():

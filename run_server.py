@@ -27,7 +27,7 @@ if __name__ == '__main__':
     #server.create_endpoints('udea')
     #server.create_endpoints('colciencias')
     #server.create_endpoints('estudios_gerenciales')
-    server.create_endpoints('covid19')
+    #server.create_endpoints('covid19')
     #server.create_endpoints('coronavirus')
     #server.create_endpoints('covid_19')
     #server.create_endpoints('hcov_19')
