@@ -19,7 +19,9 @@ else:
     
 if __name__ == '__main__':
     server=PDBServer(dbname=args.db,ip=ip,port=args.port)
+    server.create_cites_endpoints()
     server.create_cache_endpoints()
+    server.create_lookup_endpoints()
     server.create_gsquery_endpoints()
     #server.create_endpoints('redalyc')
     #server.create_endpoints('udea')

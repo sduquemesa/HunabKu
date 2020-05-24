@@ -127,11 +127,9 @@ class PDBServer:
             endpoint to submit cites links
             '''
             data = request.args.get('data')
-            collection = request.args.get('collection')
-            print(collection)
-            apikey=request.args.get('apikey')
+            apikey = request.args.get('apikey')
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites_{}'.format(collection)].insert(json.loads(data))
+                self.db['cache_cites'].insert(json.loads(data))
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
@@ -152,10 +150,10 @@ class PDBServer:
             '''
             endpoint to read cites links from cache
             '''
-            collection = request.args.get('collection')
+            tag = request.args.get('tag')
             apikey=request.args.get('apikey')
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites_{}'.format(collection)].find({'downloaded':0})
+                cursor = self.db['cache_cites'].find({'tag':tag,'downloaded':0})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -180,10 +178,9 @@ class PDBServer:
             endpoint to update cites links from cache
             '''
             _id = request.args.get('_id') #object id
-            collection = request.args.get('collection')
-            apikey=request.args.get('apikey')
+            apikey = request.args.get('apikey')
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites_{}'.format(collection)].update_one({'_id':ObjectId(json.loads(_id))},{"$set":{'downloaded':1}})
+                cursor = self.db['cache_cites'].update_one({'_id':ObjectId(json.loads(_id))},{"$set":{'downloaded':1}})
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
@@ -199,6 +196,37 @@ class PDBServer:
                 return response    
         app.add_url_rule('/cache/cites/update',view_func=cites_cache_update,methods = ['GET'])
         print('-    endpoint = {}'.format('/cache/cites/update'))
+
+        def checkpoint_cites_endpoint():
+            """
+            return remaning links to download for citations for a given tag, tag is an identifier for a set of data
+            :return:        json with data 
+            """
+            apikey = request.args.get('apikey')
+            tag = request.args.get('tag')
+            
+            if self.dbapikey == apikey:
+                cursor = self.db['cache_cites'].find({'tag':tag,'downloaded':0,'empty':0}) #to get only cites not downloaded and not set like empty page
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(JSONEncoder().encode(data)),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+
+        checkpoint_cites_endpoint.__name__ = checkpoint_cites_endpoint.__name__
+        app.add_url_rule('/cache/cites/checkpoint',view_func=checkpoint_cites_endpoint,methods = ['GET'])
+        print('-    endpoint = /cache/cites/checkpoint')
 
 
 
@@ -256,15 +284,139 @@ class PDBServer:
         app.add_url_rule('/data/{}/read'.format(collection),view_func=data_read_endpoint,methods = ['GET'])
         print('-    endpoint = {}'.format('/data/{}/read'.format(collection)))
 
+    def create_cites_endpoints(self):
+        def stage_cites_submit_endpoint():
+            '''
+
+            '''
+            data = request.args.get('data')
+            apikey = request.args.get('apikey')
+            if self.dbapikey == apikey:
+                self.db['stage_cites'].insert(json.loads(data))
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+
+        stage_cites_submit_endpoint.__name__ = stage_cites_submit_endpoint.__name__ 
+        app.add_url_rule('/stage/cites/submit',view_func=stage_cites_submit_endpoint,methods = ['GET'])
+        print('-    endpoint = /stage/cites/submit')
+
+    def create_lookup_endpoints(self):
+        def stage_submit_endpoint():
+            '''
+            '''
+            data = request.args.get('data')
+            apikey = request.args.get('apikey')
+            if self.dbapikey == apikey:
+                jdata=json.loads(data)
+                jdata["_id"]=ObjectId(jdata["_id"])
+                self.db['stage'].insert(jdata)
+                response = app.response_class(
+                    response=json.dumps({}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+        stage_submit_endpoint.__name__ = stage_submit_endpoint.__name__ 
+        app.add_url_rule('/stage/submit',view_func=stage_submit_endpoint,methods = ['GET'])
+        print('-    endpoint = /stage/submit')
+
+        def stage_checkpoint_endpoint():
+            '''
+            Return values to restore the process execution
+
+            '''
+            apikey = request.args.get('apikey')
+            tag = request.args.get('tag')
+            
+            if self.dbapikey == apikey:
+                ckeckpoint = True # False if any error or all was dowloaded
+                error=False 
+                msg=""
+                ckp_ids = [] #_id(s) for checkpoint 
+
+                # reading collection data
+                #npapers = self.db['data_{}'.format(collection)].count() #number of papers in data collection
+                try:
+                    data_ids=set([str(reg["_id"]) for reg in self.db['data_{}'.format(tag)].find({},{"_id":1})]) 
+                except:
+                    data_ids=[]
+                npapers=len(data_ids)
+                if npapers == 0:
+                    error = True
+                    ckeckpoint = False
+                    msg="No elements found in data_"+tag
+                    response = app.response_class(
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                    return response
+
+                try:
+                    stage_ids = set([str(reg["_id"]) for reg in self.db['stage'].find({'tag':tag},{'_id':1})])
+                except:
+                    stage_ids=[]
+
+                if len(stage_ids) == npapers: # all the papers were downloaded
+                    ckeckpoint = False
+                    msg = "All papers already downloaded for data_"+tag
+                    response = app.response_class(
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                    return response
 
 
-    def create_endpoints(self,collection):
-        dbapikey = self.dbapikey
+                if len(stage_ids)==0:
+                    ckp_ids = list(data_ids)
+                    msg = 'stage with tag='+tag+' is empty'
+                    response = app.response_class(
+                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                    return response
 
-        print('Creating endpoints for {}'.format(collection))
-        
-        self.create_data_endpoint(collection)
-        
+                ckp_ids=list(data_ids-data_ids.intersection(stage_ids))
+                msg = 'missing values for stage with tag='+tag
+                response = app.response_class(
+                    response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+
+            else:
+                response = app.response_class(
+                    response=json.dumps({"error":"invalid apikey"}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
+
+        stage_checkpoint_endpoint.__name__ = stage_checkpoint_endpoint.__name__
+        app.add_url_rule('/stage/checkpoint',view_func=stage_checkpoint_endpoint,methods = ['GET'])
+        print('-    endpoint = /stage/checkpoint')
+
         def data_endpoint():
             '''
             this is a special endpoint for checkout in GSLookUp class, see data/submit/read
@@ -272,8 +424,13 @@ class PDBServer:
             ids=json.loads(request.args.get('ids').replace("'","\""))
             oids=[ObjectId(iid) for iid in ids]
             apikey=request.args.get('apikey')
-            if dbapikey == apikey:
-                cursor = self.db['data_{}'.format(collection)].find({'_id': {'$in': oids}})
+            tag=request.args.get('tag')
+            #db=request.args.get('db')
+            #self.db = self.dbclient[db]
+
+            
+            if self.dbapikey == apikey:
+                cursor = self.db['data_{}'.format(tag)].find({'_id': {'$in': oids}})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -292,10 +449,19 @@ class PDBServer:
                     mimetype='application/json'
                 )
                 return response    
-        data_endpoint.__name__ = data_endpoint.__name__+'_'+collection 
-        app.add_url_rule('/data/{}'.format(collection),view_func=data_endpoint,methods = ['GET'])
-        print('-    endpoint = {}'.format('/data/{}'.format(collection)))
+        data_endpoint.__name__ = data_endpoint.__name__ 
+        app.add_url_rule('/data/',view_func=data_endpoint,methods = ['GET'])
+        print('-    endpoint = /data/')
                 
+
+
+    def create_endpoints(self,collection):
+        dbapikey = self.dbapikey
+
+        print('Creating endpoints for {}'.format(collection))
+        
+        #self.create_data_endpoint(collection)
+        
 
         #@app.route('/stage/{}/submit'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
         def stage_submit_endpoint():
@@ -387,142 +553,8 @@ class PDBServer:
         print('-    endpoint = {}'.format('/data/{}/cites/read'.format(collection)))
 
         #@app.route('/stage/{}/cites/submit'.format(collection),methods = ['GET']) #Get method is faster than Post (the html body is not sent)
-        def data_cites_submit_endpoint():
-            '''
-
-            '''
-            data = request.args.get('data')
-            apikey = request.args.get('apikey')
-            if dbapikey == apikey:
-                self.db['data_cites_{}'.format(collection)].insert(json.loads(data))
-                response = app.response_class(
-                    response=json.dumps({}),
-                    status=200,
-                    mimetype='application/json'
-                )
-                return response    
-            else:
-                response = app.response_class(
-                    response=json.dumps({'error':'invalid apikey'}),
-                    status=200,
-                    mimetype='application/json'
-                )
-                return response
-
-        data_cites_submit_endpoint.__name__ = data_cites_submit_endpoint.__name__+'_'+collection 
-        app.add_url_rule('/data/{}/cites/submit'.format(collection),view_func=data_cites_submit_endpoint,methods = ['GET'])
-        print('-    endpoint = {}'.format('/data/{}/cites/submit'.format(collection)))
-
-        def stage_checkpoint_endpoint():
-            '''
-            Return values to restore the process execution
-
-            '''
-            apikey = request.args.get('apikey')
-            if dbapikey == apikey:
-                ckeckpoint = True # False if any error or all was dowloaded
-                error=False 
-                msg=""
-                ckp_ids = [] #_id(s) for checkpoint 
-
-                # reading collection data
-                #npapers = self.db['data_{}'.format(collection)].count() #number of papers in data collection
-                try:
-                    data_ids=set([str(reg["_id"]) for reg in self.db['data_{}'.format(collection)].find({},{"_id":1})]) 
-                except:
-                    data_ids=[]
-                npapers=len(data_ids)
-                if npapers == 0:
-                    error = True
-                    ckeckpoint = False
-                    msg="No elements found in data_"+collection
-                    response = app.response_class(
-                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
-                        status=200,
-                        mimetype='application/json'
-                    )
-                    return response
-
-                #ids = self.db['stage_{}'.format(collection)].find({},{'_id':1})
-                #ids_df = DataFrame.from_records(ids)
-                try:
-                    stage_ids = set([str(reg["_id"]) for reg in self.db['stage_{}'.format(collection)].find({},{'_id':1})])
-                except:
-                    stage_ids=[]
-
-                if len(stage_ids) == npapers: # all the papers were downloaded
-                    ckeckpoint = False
-                    msg = "All papers already downloaded for data_"+collection
-                    response = app.response_class(
-                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
-                        status=200,
-                        mimetype='application/json'
-                    )
-                    return response
 
 
-                if len(stage_ids)==0:
-                    ckp_ids = list(data_ids)
-                    msg = 'stage_'+collection+' is empty'
-                    response = app.response_class(
-                        response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
-                        status=200,
-                        mimetype='application/json'
-                    )
-                    return response
-
-                #values=ids_df['_id'].values
-                #ckp_ids=sorted(set(range(0, npapers)) - set(values))  
-                ckp_ids=list(data_ids-data_ids.intersection(stage_ids))
-                msg = 'missing values for stage_'+collection
-                response = app.response_class(
-                    response=json.dumps({'checkpoint':ckeckpoint,'ids':ckp_ids,'error':error,'msg':msg}),
-                    status=200,
-                    mimetype='application/json'
-                )
-                return response
-
-            else:
-                response = app.response_class(
-                    response=json.dumps({"error":"invalid apikey"}),
-                    status=200,
-                    mimetype='application/json'
-                )
-                return response
-
-        stage_checkpoint_endpoint.__name__ = stage_checkpoint_endpoint.__name__+'_'+collection 
-        app.add_url_rule('/stage/{}/checkpoint'.format(collection),view_func=stage_checkpoint_endpoint,methods = ['GET'])
-        print('-    endpoint = {}'.format('/stage/{}/checkpoint'.format(collection)))
-
-        def data_checkpoint_cites_endpoint():
-            """
-            return remaning links to download for citations
-            :return:        json with data 
-            """
-            apikey = request.args.get('apikey')
-            
-            if self.dbapikey == apikey:
-                cursor = self.db['cache_cites'].find({'collection':collection,'downloaded':0})
-                data=[]
-                for i in cursor:
-                    data.append(i)
-                response = app.response_class(
-                    response=json.dumps(JSONEncoder().encode(data)),
-                    status=200,
-                    mimetype='application/json'
-                )
-                return response    
-            else:
-                response = app.response_class(
-                    response=json.dumps({'error':'invalid apikey'}),
-                    status=200,
-                    mimetype='application/json'
-                )
-                return response    
-
-        data_checkpoint_cites_endpoint.__name__ = data_checkpoint_cites_endpoint.__name__+'_'+collection 
-        app.add_url_rule('/data/{}/cites/checkpoint'.format(collection),view_func=data_checkpoint_cites_endpoint,methods = ['GET'])
-        print('-    endpoint = {}'.format('/data/{}/cites/checkpoint'.format(collection)))
 
     def start(self):
         '''
