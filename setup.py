@@ -34,7 +34,7 @@ if os.name in ('nt', 'dos'):
 def main():
     setup(
         # Application name:
-        name="PDBServer",
+        name="Hunabku",
 
         # Version number (initial):
         version="0.1.0",
@@ -50,7 +50,7 @@ def main():
         include_package_data=True,
 
         # Details
-        url="https://github.com/colav/PDBServer",
+        url="https://github.com/colav/Hunabku",
 
         #
         license="BSD",
