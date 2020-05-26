@@ -14,13 +14,15 @@ class HunakuJsonEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-_endpoints=[]
+_endpoints={}
 
 def endpoint(path, methods):
     def wrapper(func):
         global _endpoints
         print('------ Adding endpoint '+path+' with methods'+str(methods))
-        _endpoints.append({'path':path,'methods':methods,'func':func})
+        class_name, func_name = func.__qualname__.split('.')
+        _endpoints[class_name]={'path':path,'methods':methods,'func_name':func_name}
+        #print(_endpoints)
         @wraps(func)
         def _impl(self, *method_args, **method_kwargs):
             response = func(self)
@@ -40,14 +42,18 @@ class HunakuPluginBase():
         self.request = request
         self.json = json
         self.logger = hunakub.logger
-
-        self.json._dumps = self.json.dumps
-        self.json._dump = self.json.dump
+        
+        _dumps = self.json.dumps
+        _dump = self.json.dump
         #added support to our json encoder
-        def json_dumps(obj, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=HunakuJsonEncoder, indent=None, separators=None, default=None, sort_keys=False):
-            return json._dumps(**locals())
-        def json_dump(obj, fp, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=HunakuJsonEncoder, indent=None, separators=None, default=None, sort_keys=False):
-            return json._dump(**locals()) 
+        def json_dumps(obj, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=HunakuJsonEncoder, indent=None, separators=None, default=None, sort_keys=False):
+            return _dumps(obj=obj, skipkeys=skipkeys, ensure_ascii=ensure_ascii,
+                          check_circular=check_circular, allow_nan=allow_nan, cls=cls, 
+                          indent=indent, separators=separators, default=default, sort_keys=sort_keys)
+        def json_dump(obj, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=HunakuJsonEncoder, indent=None, separators=None, default=None, sort_keys=False):
+            return _dump(obj=obj, skipkeys=skipkeys, ensure_ascii=ensure_ascii,
+                          check_circular=check_circular, allow_nan=allow_nan, cls=cls, 
+                          indent=indent, separators=separators, default=default, sort_keys=sort_keys)
         #custimized encoder use by default
         self.json.dumps =  json_dumps
         self.json.dump =  json_dump        
@@ -69,11 +75,13 @@ class HunakuPluginBase():
             return False
 
     def register_endpoints(self):
-        for _endpoint in _endpoints:
-            path = _endpoint['path']
-            func = _endpoint['func']
-            methods = _endpoint['methods']
-            self.app.add_url_rule(path,view_func=getattr(self, func.__name__),methods = methods)
+        global _endpoints
+        endpoint_data = _endpoints[type(self).__name__]
+        path = endpoint_data['path']
+        func_name = endpoint_data['func_name']
+        methods = endpoint_data['methods']
+        func = getattr(self,func_name)
+        self.app.add_url_rule(path,view_func=func,methods = methods)
 
 
 
