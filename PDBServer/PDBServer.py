@@ -387,7 +387,7 @@ class PDBServer:
                     return response
 
                 try:
-                    stage_ids = set([str(reg["_id"]) for reg in self.db['stage'].find({'tag':tag},{'_id':1})])
+                    stage_ids = set([str(reg["_id"]) for reg in self.db['stage'].find({},{'_id':1})])
                 except:
                     stage_ids=[]
 
