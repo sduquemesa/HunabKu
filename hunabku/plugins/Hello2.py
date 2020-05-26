@@ -14,4 +14,16 @@ class Hello2(HunakuPluginBase):
             )
             return response    
         else:
-            return self.send_apikey_error()
+            return self.apikey_error()
+
+    @endpoint('/bye',methods=['GET'])
+    def bye(self):
+        if self.valid_apikey():
+            response = self.app.response_class(
+                response=self.json.dumps({'bye':'bye'}),
+                status=200,
+                mimetype='application/json'
+            )
+            return response    
+        else:
+            return self.apikey_error()
