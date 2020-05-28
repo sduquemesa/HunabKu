@@ -158,10 +158,10 @@ class PDBServer:
             '''
             endpoint to read cites links from cache
             '''
-            tag = request.args.get('tag')
+            db = request.args.get('db')
             apikey=request.args.get('apikey')
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites'].find({'tag':tag,'downloaded':0})
+                cursor = self.db['cache_cites'].find({'downloaded':0})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -190,9 +190,8 @@ class PDBServer:
             empty = request.args.get('empty')
             db = request.args.get('db')
             self.db = self.dbclient[db]
-
             if self.dbapikey == apikey:
-                self.db['cache_cites'].update_one({'_id':ObjectId(json.loads(_id))},{"$set":{'downloaded':1,'empty':empty}})
+                self.db['cache_cites'].update_one({'_id':json.loads(_id)},{"$set":{'downloaded':1,'empty':empty}})
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
