@@ -209,6 +209,34 @@ class PDBServer:
         app.add_url_rule('/cache/cites/update',view_func=cites_cache_update,methods = ['GET'])
         print('-    endpoint = {}'.format('/cache/cites/update'))
 
+        def cites_cache_ids(): #this is the checkpoint for cache not for cites itself
+            '''
+            endpoint to read cites links for checkpoint
+            '''
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
+            apikey=request.args.get('apikey')
+            if self.dbapikey == apikey:
+                cursor = self.db['cache_cites'].find({},{'_id':1})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(JSONEncoder().encode(data)),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+        app.add_url_rule('/cache/cites/ids',view_func=cites_cache_ids,methods = ['GET'])
+        print('-    endpoint = {}'.format('/cache/cites/ids'))
+
         def checkpoint_cites_endpoint():
             """
             return remaning links to download for citations for a given tag, tag is an identifier for a set of data
