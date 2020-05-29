@@ -158,10 +158,10 @@ class PDBServer:
             '''
             endpoint to read cites links from cache
             '''
-            tag = request.args.get('tag')
+            db = request.args.get('db')
             apikey=request.args.get('apikey')
             if self.dbapikey == apikey:
-                cursor = self.db['cache_cites'].find({'tag':tag,'downloaded':0})
+                cursor = self.db['cache_cites'].find({'downloaded':0})
                 data=[]
                 for i in cursor:
                     data.append(i)
@@ -190,9 +190,8 @@ class PDBServer:
             empty = request.args.get('empty')
             db = request.args.get('db')
             self.db = self.dbclient[db]
-
             if self.dbapikey == apikey:
-                self.db['cache_cites'].update_one({'_id':ObjectId(json.loads(_id))},{"$set":{'downloaded':1,'empty':empty}})
+                self.db['cache_cites'].update_one({'_id':json.loads(_id)},{"$set":{'downloaded':1,'empty':empty}})
                 response = app.response_class(
                     response=json.dumps({}),
                     status=200,
@@ -208,6 +207,34 @@ class PDBServer:
                 return response    
         app.add_url_rule('/cache/cites/update',view_func=cites_cache_update,methods = ['GET'])
         print('-    endpoint = {}'.format('/cache/cites/update'))
+
+        def cites_cache_ids(): #this is the checkpoint for cache not for cites itself
+            '''
+            endpoint to read cites links for checkpoint
+            '''
+            db = request.args.get('db')
+            self.db = self.dbclient[db]
+            apikey=request.args.get('apikey')
+            if self.dbapikey == apikey:
+                cursor = self.db['cache_cites'].find({},{'_id':1})
+                data=[]
+                for i in cursor:
+                    data.append(i)
+                response = app.response_class(
+                    response=json.dumps(JSONEncoder().encode(data)),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+            else:
+                response = app.response_class(
+                    response=json.dumps({'error':'invalid apikey'}),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response    
+        app.add_url_rule('/cache/cites/ids',view_func=cites_cache_ids,methods = ['GET'])
+        print('-    endpoint = {}'.format('/cache/cites/ids'))
 
         def checkpoint_cites_endpoint():
             """
@@ -387,7 +414,7 @@ class PDBServer:
                     return response
 
                 try:
-                    stage_ids = set([str(reg["_id"]) for reg in self.db['stage'].find({'tag':tag},{'_id':1})])
+                    stage_ids = set([str(reg["_id"]) for reg in self.db['stage'].find({},{'_id':1})])
                 except:
                     stage_ids=[]
 
