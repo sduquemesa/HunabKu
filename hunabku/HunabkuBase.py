@@ -61,7 +61,7 @@ def endpoint(path, methods):
     return wrapper
 
 class HunakuPluginBase():
-    def __init__(self,hunakub):
+    def __init__(self,hunabku):
         """
         Base class to handle the plugins.
         Allows to have access to the MondoDB object, custom json methods
@@ -72,16 +72,17 @@ class HunakuPluginBase():
         that is going to hanlde the endpoint.
 
         """
-        self.dburi        = hunakub.dburi
-        self.dbclient     = hunakub.dbclient
-        self.ip = hunakub.ip
-        self.port = hunakub.port
-        self.info_level = hunakub.info_level
-        self.apikey = hunakub.apikey
-        self.app = hunakub.app
+        self.dburi        = hunabku.dburi
+        self.dbclient     = hunabku.dbclient
+        self.ip = hunabku.ip
+        self.port = hunabku.port
+        self.info_level = hunabku.info_level
+        self.apikey = hunabku.apikey
+        self.app = hunabku.app
         self.request = request
         self.json = json
-        self.logger = hunakub.logger
+        self.logger = hunabku.logger
+        self.hunabku = hunabku
         _dumps = self.json.dumps
         _dump = self.json.dump
         

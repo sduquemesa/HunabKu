@@ -1,7 +1,9 @@
 from flask import (
     Flask,
     json,
-    request
+    request,
+    render_template,
+    send_from_directory
 )
 
 from pymongo import MongoClient
@@ -12,7 +14,10 @@ from bson import ObjectId
 import logging
 
 import os
+from shutil import rmtree
+import subprocess
 import glob
+import time
 import pathlib
 import sys, inspect
 import importlib
@@ -48,12 +53,15 @@ class Hunabku:
         self.port = port
         self.info_level = info_level
         self.apikey = apikey
-        self.plugins = {}
+        self.apidoc_dir = 'apidoc'
+        self.plugins = []
         self.log_file = log_file
         self.logger = logging.getLogger(__name__)
         self.set_info_level(info_level)
-        self.app = Flask('hanubku', template_folder='templates')
+        self.app = Flask('hanubku', static_folder='static',static_url_path='/',template_folder='templates')
         self.load_plugins()
+        self.generate_doc()
+    
 
     def set_info_level(self, info_level):
         '''
@@ -77,10 +85,47 @@ class Hunabku:
             plugin_class = getattr(module, name)
             instance = plugin_class(self)
             instance.register_endpoints()
-            self.plugins['name'] = name
-            self.plugins['path'] = path
-            self.plugins['spec'] = spec
-            self.plugins['instance'] = instance
+            plugin = {}
+            plugin['name'] = name
+            plugin['path'] = path
+            plugin['spec'] = spec
+            plugin['instance'] = instance
+            self.plugins.append(plugin)
+
+    def generate_doc(self,timeout=1,maxtries=5):
+        '''
+        this method allows to generated apidocs documentation parsing plugin files
+        '''
+        self.logger.warning('-----------------------')
+        self.logger.warning('------ Creating documentation')
+        self.logger.warning('------ Apidocs at http://{}:{}/apidoc/index.html'.format(self.ip,self.port))
+
+        try:
+            os.mkdir('static')
+            print(" * Static Directory " , self.apidoc_dir ,  " created ") 
+        except FileExistsError:
+            #Is this is happening then restart the microservices in the folder
+            print(" * Warning! Static Directory " , self.apidoc_dir ,  " already exists")
+
+        rmtree('static/'+self.apidoc_dir)
+        args=['apidoc']
+        for plugin in self.plugins:
+            args.append('-f')
+            args.append(plugin['path'])
+        args.append('-o')
+        args.append('static/'+self.apidoc_dir)
+        process = subprocess.Popen(args, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.STDOUT)
+        counter=0
+        while process.poll() is None:
+            time.sleep(timeout)
+            counter = counter+1
+            if counter == maxtries:
+                process.kill()
+                break
+
+
 
     def start(self):
         '''

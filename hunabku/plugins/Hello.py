@@ -7,9 +7,9 @@ class Hello(HunakuPluginBase):
     @endpoint('/hello',methods=['GET'])
     def hello(self):
         """
-        @api {get} /user/:id Request User information
-        @apiName GetUser
-        @apiGroup User
+        @api {get} /hello/:id Simple Hello with ID
+        @apiName Hello
+        @apiGroup Hello
 
         @apiParam {Number} id Users unique ID.
 
