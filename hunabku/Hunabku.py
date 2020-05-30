@@ -97,7 +97,7 @@ class Hunabku:
         for apidoc  files generation.
         The the syntax is wrong, the Hunabku server can not start.
         '''
-        process = subprocess.run(['apidoc', '-c', 'etc/', '--simulate', '-f', plugin_file],capture_output=True)
+        process = subprocess.run(['apidoc', '-c', 'etc/', '--simulate', '-f', plugin_file],stdout=subprocess.PIPE)
         if process.returncode != 0:
             self.logger.error('------ERROR: parsing docstring for apidocs in plugin '+plugin_file)
             self.logger.error('             server can not start until apidocs syntax is fixed')
