@@ -92,12 +92,13 @@ class GSLookUp(HunabkuPluginBase):
 
         @apiError (Error 401) msg  The HTTP 401 Unauthorized invalid authentication apikey for the target resource.
         """
+
         _id = self.request.args.get('id')
         oid = ObjectId(_id)
         db = self.request.args.get('db')
-        self.db = self.dbclient[db]
-
+        
         if self.valid_apikey():
+            self.db = self.dbclient[db]
             cursor = self.db['data'].find({'_id': oid})
             data = []
             for i in cursor:
@@ -134,9 +135,9 @@ class GSLookUp(HunabkuPluginBase):
 
         @apiError (Error 401) msg  The HTTP 401 Unauthorized invalid authentication apikey for the target resource.
         """
-        db = self.request.args.get('db')
-        self.db = self.dbclient[db]
         if self.valid_apikey():
+            db = self.request.args.get('db')
+            self.db = self.dbclient[db]
             ckeckpoint = True  # False if any error or all was dowloaded
             error = False
             msg = ""
