@@ -1,9 +1,9 @@
-from hunabku.HunabkuBase import HunakuPluginBase, endpoint
+from hunabku.HunabkuBase import HunabkuPluginBase, endpoint
 from flask import (
     render_template,
 )
 
-class ApiDoc(HunakuPluginBase):
+class ApiDoc(HunabkuPluginBase):
     def __init__(self,hunabku):
         super().__init__(hunabku)
     

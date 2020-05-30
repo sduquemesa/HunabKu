@@ -91,6 +91,17 @@ class Hunabku:
             plugin['spec'] = spec
             plugin['instance'] = instance
             self.plugins.append(plugin)
+    def check_apidoc_syntax(self,plugin_file):
+        '''
+        Allows to check in the syntaxis in the docstring comment is right 
+        for apidoc  files generation.
+        The the syntax is wrong, the Hunabku server can not start.
+        '''
+        process = subprocess.run(['apidoc', '-c', 'etc/', '--simulate', '-f', plugin_file],capture_output=True)
+        if process.returncode != 0:
+            self.logger.error('------ERROR: parsing docstring for apidocs in plugin '+plugin_file)
+            self.logger.error('             server can not start until apidocs syntax is fixed')
+            sys.exit(1)
 
     def generate_doc(self,timeout=1,maxtries=5):
         '''
@@ -107,9 +118,11 @@ class Hunabku:
             #Is this is happening then restart the microservices in the folder
             print(" * Warning! Static Directory " , self.apidoc_dir ,  " already exists")
 
-        rmtree('static/'+self.apidoc_dir)
-        args=['apidoc']
+        rmtree('static/'+self.apidoc_dir,ignore_errors=True)
+        args=['apidoc','-c','etc']
+
         for plugin in self.plugins:
+            self.check_apidoc_syntax(plugin['path'])
             args.append('-f')
             args.append(plugin['path'])
         args.append('-o')

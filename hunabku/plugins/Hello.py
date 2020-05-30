@@ -1,6 +1,6 @@
-from hunabku.HunabkuBase import HunakuPluginBase, endpoint
+from hunabku.HunabkuBase import HunabkuPluginBase, endpoint
 
-class Hello(HunakuPluginBase):
+class Hello(HunabkuPluginBase):
     def __init__(self,hunabku):
         super().__init__(hunabku)
 
