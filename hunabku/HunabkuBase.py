@@ -105,8 +105,8 @@ class HunakuPluginBase():
         return defualt apikey error  
         """
         response = self.app.response_class(
-                response=self.json.dumps({'error':'invalid apikey'}),
-                status=200,
+                response=self.json.dumps({'msg':'The HTTP 401 Unauthorized invalid authentication apikey for the target resource.'}),
+                status=401,
                 mimetype='application/json'
         )
         return response
