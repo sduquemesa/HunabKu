@@ -6,10 +6,10 @@ class GSLookUp(HunabkuPluginBase):
     def __init__(self, hunabku):
         super().__init__(hunabku)
 
-    @endpoint('/moai/gs/stage/submit', methods=['PUT'])
+    @endpoint('/moai/gs/stage/submit', methods=['GET'])
     def stage_submit(self):
         """
-        @api {put} /moai/gs/stage/submit submit Paper
+        @api {get} /moai/gs/stage/submit submit Paper
         @apiName GSLookUp
         @apiGroup GSLookUp
         @apiDescription Allows to submit papers to the collection stage in the given databse db.
