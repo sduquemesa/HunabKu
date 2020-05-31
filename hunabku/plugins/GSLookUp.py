@@ -93,9 +93,10 @@ class GSLookUp(HunabkuPluginBase):
         @apiError (Error 401) msg  The HTTP 401 Unauthorized invalid authentication apikey for the target resource.
         """
 
-        _id = self.request.args.get('id')
+        _id = self.request.args.get('_id')
         oid = ObjectId(_id)
         db = self.request.args.get('db')
+        url = self.request.args.get('url')
         
         if self.valid_apikey():
             self.db = self.dbclient[db]
@@ -103,6 +104,7 @@ class GSLookUp(HunabkuPluginBase):
             data = []
             for i in cursor:
                 data.append(i)
+            data[0]['url'] = url    
             self.db['gslookup_not_found'].insert(data)
             self.db['data'].delete_one({'_id': oid})
             response = self.app.response_class(
