@@ -18,7 +18,7 @@ class ApiDoc(HunabkuPluginBase):
     @endpoint('/apidoc/update',methods=['GET'])
     def update(self):
         """
-        @api {get} /hello/:id Update ApiDoc Documentation
+        @api {get} /apidoc/update Update ApiDoc Documentation
         @apiName ApiDoc
         @apiGroup ApiDoc
         """
