@@ -64,14 +64,14 @@ class MoaiGSLookUp(HunabkuPluginBase):
         oid = ObjectId(_id)
         db = self.request.args.get('db')
         url = self.request.args.get('url')
-        
+
         if self.valid_apikey():
             self.db = self.dbclient[db]
             cursor = self.db['data'].find({'_id': oid})
             data = []
             for i in cursor:
                 data.append(i)
-            data[0]['url'] = url    
+            data[0]['url'] = url
             self.db['gslookup_not_found'].insert(data)
             self.db['data'].delete_one({'_id': oid})
             response = self.app.response_class(

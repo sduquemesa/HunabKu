@@ -1,10 +1,11 @@
 from hunabku.HunabkuBase import HunabkuPluginBase, endpoint
 
+
 class Hello(HunabkuPluginBase):
-    def __init__(self,hunabku):
+    def __init__(self, hunabku):
         super().__init__(hunabku)
 
-    @endpoint('/hello',methods=['GET'])
+    @endpoint('/hello', methods=['GET'])
     def hello(self):
         """
         @api {get} /hello/:id Simple Hello with ID
@@ -18,10 +19,10 @@ class Hello(HunabkuPluginBase):
         """
         if self.valid_apikey():
             response = self.app.response_class(
-                response=self.json.dumps({'hello':'world'}),
+                response=self.json.dumps({'hello': 'world'}),
                 status=200,
                 mimetype='application/json'
             )
-            return response    
+            return response
         else:
             return self.apikey_error()

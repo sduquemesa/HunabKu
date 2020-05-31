@@ -9,7 +9,7 @@ class MoaiGSStage(HunabkuPluginBase):
     @endpoint('/moai/gs/stage/submit', methods=['GET'])
     def stage_submit(self):
         """
-        @api {get} /moai/gs/stage/submit submit Paper
+        @api {get} /moai/gs/stage/submit Submit Paper
         @apiName  Moai Stage
         @apiGroup Moai GS Stage
         @apiDescription Allows to submit papers to the collection stage in the given databse db.
@@ -61,14 +61,14 @@ class MoaiGSStage(HunabkuPluginBase):
 
         if self.valid_apikey():
             cursor = self.db['stage'].find()
-            data=[]
+            data = []
             for i in cursor:
                 data.append(i)
             response = self.app.response_class(
-                response = self.json.dumps(data),
+                response=self.json.dumps(data),
                 status=200,
                 mimetype='application/json'
             )
-            return response    
+            return response
         else:
-            return self.apikey_error() 
+            return self.apikey_error()
