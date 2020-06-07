@@ -37,7 +37,7 @@ def main():
         name="Hunabku",
 
         # Version number (initial):
-        version="0.1.0",
+        version="0.0.1-alpha",
 
         # Application author details:
         author="Colav",
@@ -63,11 +63,12 @@ def main():
 
         # Dependent packages (distributions)
         install_requires=[
-            'pymongo',
-            'flask',
-            'pandas',
-            'numpy',
-            'requests'
+            'pymongo==3.10.1',
+            'flask==1.1.2',
+            'pandas==1.0.1',
+            'numpy==1.18.1',
+            'requests==2.22.0',
+            'joblib==0.14.1'
         ],
     )
 
