@@ -1,6 +1,5 @@
 
 from flask import (
-    Flask,
     json,
     request
 )

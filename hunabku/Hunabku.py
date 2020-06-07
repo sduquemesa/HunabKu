@@ -1,14 +1,9 @@
 from flask import (
     Flask,
     json,
-    request,
-    render_template,
-    send_from_directory
 )
 
 from pymongo import MongoClient
-import socket
-from pandas import DataFrame
 
 from bson import ObjectId
 import logging
@@ -20,28 +15,20 @@ import glob
 import time
 import pathlib
 import sys
-import inspect
 import importlib
 
 
-class JSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
-
-
 class Hunabku:
-    '''
+    """
     Class to serve papers information store in a mongodb database throught an API using flask.
 
     example:
     http://0.0.0.0:5000/data/redalyc?init=1&end&apikey=pl0ok9ij8uh7yg
-    '''
+    """
 
-    def __init__(self, apikey, dburi='mongodb://localhost:27017/', ip='0.0.0.0',
+    def __init__(self, apikey, dburi='mongodb://localhost:27017/', ip='127.0.0.1',
                  port=8080, log_file='hunabku.log', info_level=logging.DEBUG):
-        '''
+        """
         Contructor to initialize configuration options.
 
         Args:
@@ -49,7 +36,7 @@ class Hunabku:
             ip (str): ip to start the server
             port (int): port for the server
             info_level (logging.DEBUG/INFO etc..): enable/disable debug mode with extra messages output.
-        '''
+        """
         self.dburi = dburi
         self.dbclient = MongoClient(dburi)
         self.ip = ip
@@ -70,17 +57,17 @@ class Hunabku:
         self.generate_doc()
 
     def set_info_level(self, info_level):
-        '''
+        """
         Information level for debug or verbosity of the application (https://docs.python.org/3.1/library/logging.html)
-        '''
+        """
         if info_level != logging.DEBUG:
             logging.basicConfig(filename=self.log_file, level=info_level)
         self.info_level = info_level
 
     def load_plugins(self):
-        '''
+        """
         This method return the plugins found in the folder plugins.
-        '''
+        """
         self.logger.warning('-----------------------')
         self.logger.warning('------ Loagind Plugins:')
         for path in glob.glob(
@@ -100,11 +87,11 @@ class Hunabku:
             self.plugins.append(plugin)
 
     def check_apidoc_syntax(self, plugin_file):
-        '''
+        """
         Allows to check in the syntaxis in the docstring comment is right
         for apidoc  files generation.
         The the syntax is wrong, the Hunabku server can not start.
-        '''
+        """
         process = subprocess.run(['apidoc',
                                   '-c',
                                   'etc/',
@@ -121,9 +108,9 @@ class Hunabku:
             sys.exit(1)
 
     def generate_doc(self, timeout=1, maxtries=5):
-        '''
+        """
         this method allows to generated apidocs documentation parsing plugin files
-        '''
+        """
         self.logger.warning('-----------------------')
         self.logger.warning('------ Creating documentation')
         self.logger.warning(
@@ -160,7 +147,7 @@ class Hunabku:
                 break
 
     def start(self):
-        '''
+        """
         Method to start server
-        '''
+        """
         self.app.run(host=self.ip, port=self.port, debug=True)

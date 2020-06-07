@@ -1,5 +1,4 @@
 from hunabku.HunabkuBase import HunabkuPluginBase, endpoint
-from bson import ObjectId
 
 
 class MoaiGSCites(HunabkuPluginBase):
