@@ -108,7 +108,7 @@ class MoaiGSCites(HunabkuPluginBase):
     @endpoint('/moai/gs/cites/submit', methods=['GET'])
     def stage_cites_submit(self):
         """
-        @api {get} /moai/gs/stage/submit Submit Cite
+        @api {get} /moai/gs/cites/submit Submit Cite
         @apiName GSCites
         @apiGroup Moai GSCites
         @apiDescription Allows to submit cites to the collection stage_cites in the given database db.
