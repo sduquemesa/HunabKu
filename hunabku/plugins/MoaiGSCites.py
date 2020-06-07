@@ -136,7 +136,7 @@ class MoaiGSCites(HunabkuPluginBase):
     @endpoint('/moai/gs/cites/cache/submit', methods=['GET'])
     def cites_cache_submit(self):
         """
-        @api {get} /moai/gs/cites/cache/submit Submit cites cache 
+        @api {get} /moai/gs/cites/cache/submit Submit cites cache
         @apiName GSCites
         @apiGroup Moai GSCites
         @apiDescription Allows to submit cites cache to the collection cache_cites in the given database db.
@@ -153,10 +153,10 @@ class MoaiGSCites(HunabkuPluginBase):
         if self.valid_apikey():
             self.db['cache_cites'].insert(self.json.loads(data))
             response = self.app.response_class(
-                response = self.json.dumps({}),
+                response=self.json.dumps({}),
                 status=200,
                 mimetype='application/json'
             )
-            return response    
+            return response
         else:
             return self.apikey_error()

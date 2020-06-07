@@ -9,7 +9,7 @@ class MoaiGSQuery(HunabkuPluginBase):
     @endpoint('/moai/gs/query/cache/submit', methods=['GET'])
     def gsquery_cache_submit(self):
         """
-        @api {get} /moai/gs/query/cache/submit Submit query cache 
+        @api {get} /moai/gs/query/cache/submit Submit query cache
         @apiName GSQuery
         @apiGroup Moai GSQuery
         @apiDescription Allows to submit query cache to the collection cache_cites in the given database db.
@@ -26,11 +26,11 @@ class MoaiGSQuery(HunabkuPluginBase):
         if self.valid_apikey():
             self.db['cache_queries'].insert(self.json.loads(data))
             response = self.app.response_class(
-                response = self.json.dumps({}),
+                response=self.json.dumps({}),
                 status=200,
                 mimetype='application/json'
             )
-            return response    
+            return response
         else:
             return self.apikey_error()
 
@@ -53,18 +53,19 @@ class MoaiGSQuery(HunabkuPluginBase):
         """
         db = self.request.args.get('db')
         self.db = self.dbclient[db]
-        
+
         if self.valid_apikey():
-            cursor = self.db['cache_queries'].find({'downloaded':0,'empty':0})
-            data=[]
+            cursor = self.db['cache_queries'].find(
+                {'downloaded': 0, 'empty': 0})
+            data = []
             for i in cursor:
                 data.append(i)
             response = self.app.response_class(
-                response = self.json.dumps(data),
+                response=self.json.dumps(data),
                 status=200,
                 mimetype='application/json'
             )
-            return response    
+            return response
         else:
             return self.apikey_error()
 
@@ -89,14 +90,14 @@ class MoaiGSQuery(HunabkuPluginBase):
         self.db = self.dbclient[db]
 
         if self.valid_apikey():
-            #self.db['cache_queries'].update_one({"_id":ObjectId(_id)},{"$set":self.json.loads(data)})
+            # self.db['cache_queries'].update_one({"_id":ObjectId(_id)},{"$set":self.json.loads(data)})
             self.db['cache_queries'].update_one({'_id': ObjectId(_id)}, {
-                                              "$set": {'downloaded': 1, 'empty': empty}})
+                "$set": {'downloaded': 1, 'empty': empty}})
             response = self.app.response_class(
-                response = self.json.dumps({}),
+                response=self.json.dumps({}),
                 status=200,
                 mimetype='application/json'
             )
-            return response    
+            return response
         else:
             return self.apikey_error()
