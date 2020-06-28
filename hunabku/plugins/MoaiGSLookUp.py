@@ -118,6 +118,13 @@ class MoaiGSLookUp(HunabkuPluginBase):
                                 for reg in self.db['data'].find({}, {"_id": 1})])
             except BaseException:
                 data_ids = []
+            # reading collection gslookup_not_found
+            try:
+                not_found_ids = set([str(reg["_id"])
+                                for reg in self.db['gslookup_not_found'].find({}, {"_id": 1})])
+            except BaseException:
+                not_found_ids = []
+
             npapers = len(data_ids)
             if npapers == 0:
                 error = True
@@ -149,7 +156,7 @@ class MoaiGSLookUp(HunabkuPluginBase):
                 return response
 
             if len(stage_ids) == 0:
-                ckp_ids = list(data_ids)
+                ckp_ids = list(data_ids - not_found_ids) #removing ids that we already know were not found
                 msg = 'stage in database ' + db + ' is empty'
                 response = self.app.response_class(
                     response=self.json.dumps(
@@ -159,7 +166,7 @@ class MoaiGSLookUp(HunabkuPluginBase):
                 )
                 return response
 
-            ckp_ids = list(data_ids - data_ids.intersection(stage_ids))
+            ckp_ids = list(data_ids - data_ids.intersection(stage_ids) - not_found_ids) #removing ids that we already know were not found
             msg = 'missing values for stage with database ' + db + ' collection data'
             response = self.app.response_class(
                 response=self.json.dumps(
