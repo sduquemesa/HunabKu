@@ -69,3 +69,35 @@ class MoaiGSProfile(HunabkuPluginBase):
 
         else:
             return self.apikey_error()
+
+    @endpoint('/moai/gs/profile/submit', methods=['GET'])
+    def profile_submit(self):
+        """
+        @api {get} /moai/gs/profile/submit Submit Paper
+        @apiName  Moai profile
+        @apiGroup Moai GS profile
+        @apiDescription Allows to submit papers to the collection profile in the given databse db.
+
+        @apiParam {String} db  Database to use in mongodb
+        @apiParam {Object} data Json with paper data
+        @apiParam {String} apikey  Credential for authentication
+
+
+        @apiSuccess {String}  msg  GSProifle profile inserted 
+        @apiError (Error 401) msg  The HTTP 401 Unauthorized invalid authentication apikey for the target resource.
+        """
+        data = self.request.args.get('data')
+        db = self.request.args.get('db')
+        self.db = self.dbclient[db]
+        if self.valid_apikey():
+            data = self.json.loads(data)
+            self.db['profiles'].insert(data)
+            response = self.app.response_class(
+                response=self.json.dumps(
+                    {'msg': 'GSProfile user inserted in profile'}),
+                status=200,
+                mimetype='application/json'
+            )
+            return response
+        else:
+            return self.apikey_error()
