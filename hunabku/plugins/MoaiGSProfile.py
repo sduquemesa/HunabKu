@@ -101,3 +101,38 @@ class MoaiGSProfile(HunabkuPluginBase):
             return response
         else:
             return self.apikey_error()
+
+    @endpoint('/moai/gs/profile/not_found', methods=['GET'])
+    def profile_not_found(self):
+        """
+        @api {get} /moai/gs/profile/not_found GSProfile not found
+        @apiName GSProfile
+        @apiGroup Moai GSProfile
+        @apiDescription Allow to move the register from data when not found for gsprofile to the collection gsprofile_not_found
+
+        @apiParam {String} db  Database to use in mongodb
+        @apiParam {String} id  Paper id to move
+        @apiParam {String} apikey  Credential for authentication
+
+
+        @apiSuccess {String}  msg  Message
+
+        @apiError (Error 401) msg  The HTTP 401 Unauthorized invalid authentication apikey for the target resource.
+        """
+
+        _id = self.request.args.get('_id')
+        db = self.request.args.get('db')
+        url = self.request.args.get('url')
+
+        if self.valid_apikey():
+            self.db = self.dbclient[db]
+            self.db['gsprofile_not_found'].insert({'_id':_id,'url':url})
+            response = self.app.response_class(
+                response=self.json.dumps(
+                    {'msg': 'register {} moved from data to gsprofile_not_data'.format(_id)}),
+                status=200,
+                mimetype='application/json'
+            )
+            return response
+        else:
+            return self.apikey_error()
