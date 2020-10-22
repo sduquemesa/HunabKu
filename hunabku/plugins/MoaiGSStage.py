@@ -28,7 +28,7 @@ class MoaiGSStage(HunabkuPluginBase):
         if self.valid_apikey():
             jdata = self.json.loads(data)
             jdata["_id"] = ObjectId(jdata["_id"])
-            self.db['stage'].insert(jdata,check_keys=False)
+            self.db['stage'].insert(jdata, check_keys=False)
             response = self.app.response_class(
                 response=self.json.dumps(
                     {'msg': 'GSLookUp Paper inserted in stage'}),
@@ -61,9 +61,8 @@ class MoaiGSStage(HunabkuPluginBase):
 
         if self.valid_apikey():
             cursor = self.db['stage'].find()
-            data = []
-            for i in cursor:
-                data.append(i)
+
+            data = list(cursor)
             response = self.app.response_class(
                 response=self.json.dumps(data),
                 status=200,

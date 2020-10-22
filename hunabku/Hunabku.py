@@ -1,11 +1,9 @@
 from flask import (
-    Flask,
-    json,
+    Flask
 )
 
 from pymongo import MongoClient
 
-from bson import ObjectId
 import logging
 
 import os
@@ -26,8 +24,14 @@ class Hunabku:
     http://0.0.0.0:5000/data/redalyc?init=1&end&apikey=pl0ok9ij8uh7yg
     """
 
-    def __init__(self, apikey, dburi='mongodb://localhost:27017/', ip='127.0.0.1',
-                 port=8080, log_file='hunabku.log', info_level=logging.DEBUG):
+    def __init__(
+            self,
+            apikey,
+            dburi='mongodb://localhost:27017/',
+            ip='127.0.0.1',
+            port=8080,
+            log_file='hunabku.log',
+            info_level=logging.DEBUG):
         """
         Contructor to initialize configuration options.
 
@@ -100,11 +104,8 @@ class Hunabku:
                                   plugin_file],
                                  stdout=subprocess.PIPE)
         if process.returncode != 0:
-            self.logger.error(
-                '------ERROR: parsing docstring for apidocs in plugin ' +
-                plugin_file)
-            self.logger.error(
-                '             server can not start until apidocs syntax is fixed')
+            self.logger.error('------ERROR: parsing docstring for apidocs in plugin ' + plugin_file)
+            self.logger.error('             server can not start until apidocs syntax is fixed')
             sys.exit(1)
 
     def generate_doc(self, timeout=1, maxtries=5):

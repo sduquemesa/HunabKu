@@ -30,7 +30,7 @@ class HunabkuLoader:
             "language",
             "abstract"]
         for col in columns:
-            if not col in data.keys():
+            if col not in data.keys():
                 print('{} not found'.format(col))
                 sys.exit(1)
 
@@ -62,8 +62,5 @@ class HunabkuLoader:
             data = data.to_dict(orient='records')
             self.db[dbcollection].insert_many(data)
         else:
-            print("file format " +
-                  filename[len(filename) -
-                           4:len(filename)].lower() +
-                  " not supported", file=sys.stderr)
+            print("file format " + filename[len(filename) - 4:len(filename)].lower() + " not supported", file=sys.stderr)
             sys.exit(1)

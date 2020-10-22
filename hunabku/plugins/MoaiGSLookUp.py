@@ -137,7 +137,14 @@ class MoaiGSLookUp(HunabkuPluginBase):
             except BaseException:
                 stage_ids = []
 
-            if len(stage_ids) == npapers:  # all the papers were downloaded
+            try:
+                quarantine_ids = set(
+                    [str(reg["_id"]) for reg in self.db['quarantine'].find({}, {'_id': 1})])
+            except BaseException:
+                quarantine_ids = []
+
+            if len(stage_ids) + \
+                    len(quarantine_ids) == npapers:  # all the papers were downloaded
                 ckeckpoint = False
                 msg = "All papers already downloaded for database " + db + ' collection data'
                 response = self.app.response_class(
@@ -148,9 +155,9 @@ class MoaiGSLookUp(HunabkuPluginBase):
                 )
                 return response
 
-            if len(stage_ids) == 0:
+            if len(stage_ids) == 0 and len(quarantine_ids) == 0:
                 ckp_ids = list(data_ids)
-                msg = 'stage in database ' + db + ' is empty'
+                msg = 'stage and quarantine in database ' + db + ' is empty'
                 response = self.app.response_class(
                     response=self.json.dumps(
                         {'checkpoint': ckeckpoint, 'ids': ckp_ids, 'error': error, 'msg': msg}),
@@ -159,8 +166,8 @@ class MoaiGSLookUp(HunabkuPluginBase):
                 )
                 return response
 
-            ckp_ids = list(data_ids - data_ids.intersection(stage_ids))
-            msg = 'missing values for stage with database ' + db + ' collection data'
+            ckp_ids = list(data_ids - data_ids.intersection(stage_ids) - data_ids.intersection(quarantine_ids))
+            msg = 'missing values for stage and quarantine with database ' + db + ' collection data'
             response = self.app.response_class(
                 response=self.json.dumps(
                     {'checkpoint': ckeckpoint, 'ids': ckp_ids, 'error': error, 'msg': msg}),
@@ -169,5 +176,38 @@ class MoaiGSLookUp(HunabkuPluginBase):
             )
             return response
 
+        else:
+            return self.apikey_error()
+
+    @endpoint('/moai/gs/lookup/quarantine', methods=['GET'])
+    def quarantine_submit(self):
+        """
+        @api {get} /moai/gs/lookup/quarantine Submit Paper in Quarantine collection
+        @apiName  Moai GSLookUp
+        @apiGroup Moai GSLookUp
+        @apiDescription Allows to submit papers to the collection quarantine in the given databse db.
+
+        @apiParam {String} db  Database to use in mongodb
+        @apiParam {Object} data Json with paper data
+        @apiParam {String} apikey  Credential for authentication
+
+
+        @apiSuccess {String}  msg  GSLookUp paper inserted in quarantine
+        @apiError (Error 401) msg  The HTTP 401 Unauthorized invalid authentication apikey for the target resource.
+        """
+        data = self.request.args.get('data')
+        db = self.request.args.get('db')
+        self.db = self.dbclient[db]
+        if self.valid_apikey():
+            jdata = self.json.loads(data)
+            jdata["_id"] = ObjectId(jdata["_id"])
+            self.db['quarantine'].insert(jdata, check_keys=False)
+            response = self.app.response_class(
+                response=self.json.dumps(
+                    {'msg': 'GSLookUp Paper inserted in quarantine'}),
+                status=200,
+                mimetype='application/json'
+            )
+            return response
         else:
             return self.apikey_error()

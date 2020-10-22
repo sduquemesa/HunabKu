@@ -1,5 +1,5 @@
 from hunabku.HunabkuBase import HunabkuPluginBase, endpoint
-from bson import ObjectId
+
 
 class MoaiGSProfile(HunabkuPluginBase):
     def __init__(self, hunabku):
@@ -28,8 +28,8 @@ class MoaiGSProfile(HunabkuPluginBase):
         if self.valid_apikey():
             db = self.request.args.get('db')
             self.db = self.dbclient[db]
-            stage        = self.db['stage']
-            profiles     = self.db['profiles']
+            stage = self.db['stage']
+            profiles = self.db['profiles']
             ckeckpoint = True  # False if any error or all was dowloaded
             error = False
             msg = ""
@@ -37,15 +37,16 @@ class MoaiGSProfile(HunabkuPluginBase):
 
             # reading collection data
             try:
-                profiles_c = stage.find({'profiles':{'$ne':{}}},{'_id':0,'profiles':1})
-                profiles_p = profiles.find({},{'_id':1})
+                profiles_c = stage.find({'profiles': {'$ne': {}}}, {
+                                        '_id': 0, 'profiles': 1})
+                profiles_p = profiles.find({}, {'_id': 1})
 
                 profiles_stage = list(profiles_c)
                 profiles_stage_ids = []
                 for profile in profiles_stage:
                     for user in profile['profiles']:
                         profiles_stage_ids.append(profile['profiles'][user])
-                
+
                 profiles_stage_ids = set(profiles_stage_ids)
 
                 profiles_collection = list(profiles_p)
@@ -53,12 +54,13 @@ class MoaiGSProfile(HunabkuPluginBase):
                 for profile in profiles_collection:
                     profiles_ids.append(profile['_id'])
                 profiles_ids = set(profiles_ids)
-                ckp_ids = list(profiles_stage_ids - profiles_ids)                
+                ckp_ids = list(profiles_stage_ids - profiles_ids)
 
             except BaseException:
                 ckp_ids = []
 
-            msg = 'ids for profiles in database ' + db + ' collection stage still not downloaded'
+            msg = 'ids for profiles in database ' + db + \
+                ' collection stage still not downloaded'
             response = self.app.response_class(
                 response=self.json.dumps(
                     {'checkpoint': ckeckpoint, 'ids': ckp_ids, 'error': error, 'msg': msg}),
@@ -83,7 +85,7 @@ class MoaiGSProfile(HunabkuPluginBase):
         @apiParam {String} apikey  Credential for authentication
 
 
-        @apiSuccess {String}  msg  GSProifle profile inserted 
+        @apiSuccess {String}  msg  GSProifle profile inserted
         @apiError (Error 401) msg  The HTTP 401 Unauthorized invalid authentication apikey for the target resource.
         """
         data = self.request.args.get('data')
@@ -126,7 +128,7 @@ class MoaiGSProfile(HunabkuPluginBase):
 
         if self.valid_apikey():
             self.db = self.dbclient[db]
-            self.db['gsprofile_not_found'].insert({'_id':_id,'url':url})
+            self.db['gsprofile_not_found'].insert({'_id': _id, 'url': url})
             response = self.app.response_class(
                 response=self.json.dumps(
                     {'msg': 'register {} moved from data to gsprofile_not_data'.format(_id)}),
