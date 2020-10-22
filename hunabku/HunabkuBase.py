@@ -49,17 +49,13 @@ def endpoint(path, methods):
     """
     def wrapper(func):
         global _endpoints
-        print(
-            '------ Adding endpoint ' +
-            path +
-            ' with methods' +
-            str(methods))
+        print('------ Adding endpoint ' + path + ' with methods' + str(methods))
         class_name, func_name = func.__qualname__.split('.')
-        if not class_name in _endpoints:
+        if class_name not in _endpoints:
             _endpoints[class_name] = []
         _endpoints[class_name].append(
             {'path': path, 'methods': methods, 'func_name': func_name})
-        # print(_endpoints)
+
         @wraps(func)
         def _impl(self, *method_args, **method_kwargs):
             response = func(self)
@@ -68,7 +64,7 @@ def endpoint(path, methods):
     return wrapper
 
 
-class HunabkuPluginBase():
+class HunabkuPluginBase:
     def __init__(self, hunabku):
         """
         Base class to handle the plugins.
@@ -95,17 +91,51 @@ class HunabkuPluginBase():
         _dump = self.json.dump
 
         # added support to our json encoder
-        def json_dumps(obj, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True,
-                       cls=HunabkuJsonEncoder, indent=None, separators=None, default=None, sort_keys=False):
-            return _dumps(obj=obj, skipkeys=skipkeys, ensure_ascii=ensure_ascii,
-                          check_circular=check_circular, allow_nan=allow_nan, cls=cls,
-                          indent=indent, separators=separators, default=default, sort_keys=sort_keys)
+        def json_dumps(
+                obj,
+                skipkeys=False,
+                ensure_ascii=True,
+                check_circular=True,
+                allow_nan=True,
+                cls=HunabkuJsonEncoder,
+                indent=None,
+                separators=None,
+                default=None,
+                sort_keys=False):
+            return _dumps(
+                obj=obj,
+                skipkeys=skipkeys,
+                ensure_ascii=ensure_ascii,
+                check_circular=check_circular,
+                allow_nan=allow_nan,
+                cls=cls,
+                indent=indent,
+                separators=separators,
+                default=default,
+                sort_keys=sort_keys)
 
-        def json_dump(obj, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True,
-                      cls=HunabkuJsonEncoder, indent=None, separators=None, default=None, sort_keys=False):
-            return _dump(obj=obj, skipkeys=skipkeys, ensure_ascii=ensure_ascii,
-                         check_circular=check_circular, allow_nan=allow_nan, cls=cls,
-                         indent=indent, separators=separators, default=default, sort_keys=sort_keys)
+        def json_dump(
+                obj,
+                skipkeys=False,
+                ensure_ascii=True,
+                check_circular=True,
+                allow_nan=True,
+                cls=HunabkuJsonEncoder,
+                indent=None,
+                separators=None,
+                default=None,
+                sort_keys=False):
+            return _dump(
+                obj=obj,
+                skipkeys=skipkeys,
+                ensure_ascii=ensure_ascii,
+                check_circular=check_circular,
+                allow_nan=allow_nan,
+                cls=cls,
+                indent=indent,
+                separators=separators,
+                default=default,
+                sort_keys=sort_keys)
         # custimized encoder use by default
         self.json.dumps = json_dumps
         self.json.dump = json_dump

@@ -1,3 +1,4 @@
+# flake8: noqa
 from PDBServer.PDBLoader import PDBLoader
 
 loader=PDBLoader(dbname="colav")
