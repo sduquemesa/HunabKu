@@ -138,13 +138,13 @@ class MoaiGSLookUp(HunabkuPluginBase):
                 stage_ids = []
 
             try:
-                quarantine_ids = set([str(reg["_id"])
-                                 for reg in self.db['quarantine'].find({}, {'_id': 1})])
+                quarantine_ids = set(
+                    [str(reg["_id"]) for reg in self.db['quarantine'].find({}, {'_id': 1})])
             except BaseException:
                 quarantine_ids = []
 
-
-            if len(stage_ids) + len(quarantine_ids) == npapers:  # all the papers were downloaded
+            if len(stage_ids) + \
+                    len(quarantine_ids) == npapers:  # all the papers were downloaded
                 ckeckpoint = False
                 msg = "All papers already downloaded for database " + db + ' collection data'
                 response = self.app.response_class(
@@ -166,8 +166,7 @@ class MoaiGSLookUp(HunabkuPluginBase):
                 )
                 return response
 
-
-            ckp_ids = list(data_ids - data_ids.intersection(stage_ids)-data_ids.intersection(quarantine_ids))
+            ckp_ids = list(data_ids - data_ids.intersection(stage_ids) - data_ids.intersection(quarantine_ids))
             msg = 'missing values for stage and quarantine with database ' + db + ' collection data'
             response = self.app.response_class(
                 response=self.json.dumps(
