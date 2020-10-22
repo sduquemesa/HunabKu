@@ -3,9 +3,9 @@ import unittest
 
 class Test(unittest.TestCase):
     def setUp(self):
-        #TODO
+        # TODO
         pass
 
     def test__working(self):
-        #implement something meanful here ;)
+        # implement something meanful here ;)
         pass
