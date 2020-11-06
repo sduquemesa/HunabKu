@@ -1,7 +1,7 @@
 <center><img src="https://raw.githubusercontent.com/colav/colav.github.io/master/img/Logo.png"/></center>
 
 # HunabKu  
-Data Server /  Maya - father of all gods
+Data Server Gateway/  Maya - father of all gods
 
 # Description
 Package to load data in MongoDB and to serve the data from mongodb on endpoints using flask. 
@@ -21,6 +21,25 @@ PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
 
 * Install Apidocjs from https://github.com/apidoc/apidoc
 * The other dependecies can be installed with pip installing this package.
+
+# Usage
+Let's start the server executing
+```.sh
+hunabku_server
+```
+Or using some command line options
+```.sh
+hunabku_server --port 8080 --db_ip x.x.x.x
+```
+
+where x.x.x.x is your mongodb ip
+
+you can access to the apidoc documentation for the endpoints for example on: http://127.0.1.1:8888/apidoc/index.html
+
+if depends of the ip and port that you are providen to hunabku.
+
+
+
 
 ## Package
 `pip install hunabku`

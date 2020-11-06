@@ -196,7 +196,6 @@ class Hunabku:
                 '--simulate',
                 '-f',
                 plugin_file]
-        print(" ".join(args))
         process = subprocess.run(args,
                                  stdout=subprocess.PIPE)
         if process.returncode != 0:
