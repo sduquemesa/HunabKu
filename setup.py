@@ -31,6 +31,7 @@ def read(rel_path):
     with codecs.open(os.path.join(here, rel_path), 'r') as fp:
         return fp.read()
 
+
 def get_version(rel_path):
     for line in read(rel_path).splitlines():
         if line.startswith('__version__'):
@@ -38,6 +39,7 @@ def get_version(rel_path):
             return line.split(delim)[1]
     else:
         raise RuntimeError("Unable to find version string.")
+
 
 shell = False
 if os.name in ('nt', 'dos'):
@@ -66,7 +68,7 @@ def main():
 
         # Details
         url="https://github.com/colav/Hunabku",
-        scripts=['bin/hunabku_server','bin/hunabku_loader'],
+        scripts=['bin/hunabku_server', 'bin/hunabku_loader'],
         #
         license="BSD",
 

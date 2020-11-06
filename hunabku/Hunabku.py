@@ -19,7 +19,6 @@ import importlib
 import json
 
 
-
 class Hunabku:
     """
     Class to serve papers information store in a mongodb database throught an API using flask.
@@ -51,17 +50,23 @@ class Hunabku:
         self.port = port
         self.info_level = info_level
         self.apikey = apikey
-        self.apidoc_dir = 'apidoc'
-        self.apidoc_static_dir = self.apidoc_dir + '/' + 'static'
-        self.apidoc_templates_dir = self.apidoc_dir + '/' + 'templates'
-        self.apidoc_config_dir = self.apidoc_dir + '/' + 'config'
+        self.apidoc_dir = 'apidocs_website'
+        self.apidoc_static_dir = self.apidoc_dir + '/static'
+        self.apidoc_output_dir = self.apidoc_dir + '/apidoc'
+        self.apidoc_templates_dir = self.apidoc_dir + '/templates'
+        self.apidoc_config_dir = self.apidoc_dir + '/config'
         self.apidoc_config_data = {}
-        self.apidoc_config_data['url'] = 'http://'+ip+':'+str(port)+'/apidoc' 
-        self.apidoc_config_data['sampleUrl'] = 'http://'+ip+':'+str(port)
+        self.apidoc_config_data['url'] = 'http://' + \
+            ip + ':' + str(port) + '/apidoc'
+        self.apidoc_config_data['sampleUrl'] = 'http://' + ip + ':' + str(port)
         self.apidoc_config_data['header'] = {}
-        self.apidoc_config_data['header']['filename'] = self.apidoc_config_dir+'/apidoc-header.md'
+        self.apidoc_config_data['header']['filename'] = self.apidoc_config_dir + \
+            '/apidoc-header.md'
         self.apidoc_config_data['version'] = get_version()
-        self.pkg_config_dir = str(pathlib.Path(__file__).parent.absolute()) + '/config/'
+        self.pkg_config_dir = str(
+            pathlib.Path(__file__).parent.absolute()) + '/config/'
+        self.pkg_templates_dir = str(
+            pathlib.Path(__file__).parent.absolute()) + '/templates/'
         self.plugins = []
         self.log_file = log_file
         self.logger = logging.getLogger(__name__)
@@ -74,13 +79,13 @@ class Hunabku:
         self.apidoc_setup()
         self.load_plugins()
         self.generate_doc()
-    
+
     def apidoc_setup(self):
         """
         creates an ApiDoc folder to dump configuration and documentation of the APIs
         """
         try:
-            os.mkdir(self.apidoc_dir)
+            os.makedirs(self.apidoc_dir, exist_ok=True)
             print(" * ApidDoc Directory ", self.apidoc_dir, " created ")
         except FileExistsError:
             # Is this is happening then restart the microservices in the folder
@@ -91,7 +96,10 @@ class Hunabku:
 
         try:
             os.mkdir(self.apidoc_static_dir)
-            print(" * ApiDoc Static Directory ", self.apidoc_static_dir, " created ")
+            print(
+                " * ApiDoc Static Directory ",
+                self.apidoc_static_dir,
+                " created ")
         except FileExistsError:
             # Is this is happening then restart the microservices in the folder
             print(
@@ -100,18 +108,35 @@ class Hunabku:
                 " already exists")
 
         try:
-            os.mkdir(self.apidoc_static_dir+'/apidoc/')
-            print(" * ApiDoc Static Output Directory ", self.apidoc_static_dir, " created ")
+            os.mkdir(self.apidoc_output_dir)
+            print(" * ApiDoc Static Output Directory ",
+                  self.apidoc_output_dir, " created ")
         except FileExistsError:
             # Is this is happening then restart the microservices in the folder
             print(
                 " * Warning! ApiDoc Static Output Directory ",
-                self.apidoc_static_dir,
+                self.apidoc_output_dir,
+                " already exists")
+
+        try:
+            os.mkdir(self.apidoc_templates_dir)
+            print(
+                " * ApiDoc Templates Directory ",
+                self.apidoc_templates_dir,
+                " created ")
+        except FileExistsError:
+            # Is this is happening then restart the microservices in the folder
+            print(
+                " * Warning! ApiDoc Templates Directory ",
+                self.apidoc_templates_dir,
                 " already exists")
 
         try:
             os.mkdir(self.apidoc_config_dir)
-            print(" * ApiDoc Config Directory ", self.apidoc_static_dir, " created ")
+            print(
+                " * ApiDoc Config Directory ",
+                self.apidoc_static_dir,
+                " created ")
         except FileExistsError:
             # Is this is happening then restart the microservices in the folder
             print(
@@ -119,15 +144,16 @@ class Hunabku:
                 self.apidoc_static_dir,
                 " already exists")
 
-        copy_tree(self.pkg_config_dir,self.apidoc_config_dir)
+        copy_tree(self.pkg_config_dir, self.apidoc_config_dir)
         apidoc_config_data = {}
-        with open(self.apidoc_config_dir+'/apidoc.json') as json_file:
+        with open(self.apidoc_config_dir + '/apidoc.json') as json_file:
             apidoc_config_data = json.load(json_file)
-        
+
         apidoc_config_data.update(self.apidoc_config_data)
-        with open(self.apidoc_config_dir+'/apidoc.json','w') as json_file:
-            json.dump(apidoc_config_data,json_file)
-        
+        with open(self.apidoc_config_dir + '/apidoc.json', 'w') as json_file:
+            json.dump(apidoc_config_data, json_file)
+
+        copy_tree(self.pkg_templates_dir, self.apidoc_templates_dir)
 
     def set_info_level(self, info_level):
         """
@@ -165,15 +191,13 @@ class Hunabku:
         for apidoc  files generation.
         The the syntax is wrong, the Hunabku server can not start.
         """
-        
-        process = subprocess.run(['apidoc',
-                                  '-c',
-                                  self.apidoc_config_dir,
-                                  '-i',
-                                  str(pathlib.Path(__file__).parent.absolute()) + '/plugins/',
-                                  '--simulate',
-                                  '-f',
-                                  plugin_file],
+        args = ['apidoc', '-c', self.apidoc_config_dir, '-i',
+                str(pathlib.Path(__file__).parent.absolute()) + '/plugins/',
+                '--simulate',
+                '-f',
+                plugin_file]
+        print(" ".join(args))
+        process = subprocess.run(args,
                                  stdout=subprocess.PIPE)
         if process.returncode != 0:
             self.logger.error('------ERROR: parsing docstring for apidocs in plugin ' + plugin_file)
@@ -188,16 +212,17 @@ class Hunabku:
         self.logger.warning('------ Creating documentation')
         self.logger.warning(
             '------ Apidocs at http://{}:{}/apidoc/index.html'.format(self.ip, self.port))
-        
-        rmtree(self.apidoc_static_dir , ignore_errors=True)
-        args = ['apidoc', '-c', self.apidoc_config_dir,'-i',str(pathlib.Path(__file__).parent.absolute()) + '/plugins/']
+
+        rmtree(self.apidoc_static_dir, ignore_errors=True)
+        args = ['apidoc', '-c', self.apidoc_config_dir, '-i',
+                str(pathlib.Path(__file__).parent.absolute()) + '/plugins/']
 
         for plugin in self.plugins:
             self.check_apidoc_syntax(plugin['path'])
             args.append('-f')
             args.append(plugin['path'])
         args.append('-o')
-        args.append(self.apidoc_static_dir+'/apidoc')
+        args.append(self.apidoc_output_dir)
         process = subprocess.Popen(args,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
