@@ -11,7 +11,7 @@ class MoaiGSStage(HunabkuPluginBase):
         """
         @api {get} /moai/gs/stage/submit Submit Paper
         @apiName  Moai Stage
-        @apiGroup Moai GS Stage
+        @apiGroup Moai GSStage
         @apiDescription Allows to submit papers to the collection stage in the given databse db.
 
         @apiParam {String} db  Database to use in mongodb
@@ -44,7 +44,7 @@ class MoaiGSStage(HunabkuPluginBase):
         """
         @api {get} /moai/gs/stage/read Retrieve data from stage
         @apiName Moai Stage
-        @apiGroup Moai GS Stage
+        @apiGroup Moai GSStage
         @apiDescription Allow to retrieve data from stage, criteria to send if by chunks is not defined yet
 
         @apiParam {String} db  Database to use in mongodb

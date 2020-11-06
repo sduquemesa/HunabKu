@@ -50,9 +50,9 @@ class Hunabku:
         self.port = port
         self.info_level = info_level
         self.apikey = apikey
-        self.apidoc_dir = 'apidocs_website'
+        self.apidoc_dir = 'hunabku_website'
         self.apidoc_static_dir = self.apidoc_dir + '/static'
-        self.apidoc_output_dir = self.apidoc_dir + '/apidoc'
+        self.apidoc_output_dir = self.apidoc_dir + '/static/apidoc'
         self.apidoc_templates_dir = self.apidoc_dir + '/templates'
         self.apidoc_config_dir = self.apidoc_dir + '/config'
         self.apidoc_config_data = {}
@@ -209,8 +209,6 @@ class Hunabku:
         """
         self.logger.warning('-----------------------')
         self.logger.warning('------ Creating documentation')
-        self.logger.warning(
-            '------ Apidocs at http://{}:{}/apidoc/index.html'.format(self.ip, self.port))
 
         rmtree(self.apidoc_static_dir, ignore_errors=True)
         args = ['apidoc', '-c', self.apidoc_config_dir, '-i',
@@ -232,6 +230,8 @@ class Hunabku:
             if counter == maxtries:
                 process.kill()
                 break
+        self.logger.warning(
+            '------ Apidocs at http://{}:{}/apidoc/index.html'.format(self.ip, self.port))
 
     def start(self):
         """
