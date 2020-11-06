@@ -75,9 +75,9 @@ class MoaiGSProfile(HunabkuPluginBase):
     @endpoint('/moai/gs/profile/submit', methods=['GET'])
     def profile_submit(self):
         """
-        @api {get} /moai/gs/profile/submit Submit Paper
+        @api {get} /moai/gs/profile/submit Submit profile
         @apiName  Moai profile
-        @apiGroup Moai GS profile
+        @apiGroup Moai GSProfile
         @apiDescription Allows to submit papers to the collection profile in the given databse db.
 
         @apiParam {String} db  Database to use in mongodb
