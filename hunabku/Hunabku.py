@@ -53,6 +53,7 @@ class Hunabku:
         self.apikey = apikey
         self.apidoc_dir = 'apidoc'
         self.apidoc_static_dir = self.apidoc_dir + '/' + 'static'
+        self.apidoc_templates_dir = self.apidoc_dir + '/' + 'templates'
         self.apidoc_config_dir = self.apidoc_dir + '/' + 'config'
         self.apidoc_config_data = {}
         self.apidoc_config_data['url'] = 'http://'+ip+':'+str(port)+'/apidoc' 
@@ -69,7 +70,7 @@ class Hunabku:
             'hanubku',
             static_folder=self.apidoc_static_dir,
             static_url_path='/',
-            template_folder='templates')
+            template_folder=self.apidoc_templates_dir)
         self.apidoc_setup()
         self.load_plugins()
         self.generate_doc()
@@ -97,6 +98,17 @@ class Hunabku:
                 " * Warning! ApiDoc Static Directory ",
                 self.apidoc_static_dir,
                 " already exists")
+
+        try:
+            os.mkdir(self.apidoc_static_dir+'/apidoc/')
+            print(" * ApiDoc Static Output Directory ", self.apidoc_static_dir, " created ")
+        except FileExistsError:
+            # Is this is happening then restart the microservices in the folder
+            print(
+                " * Warning! ApiDoc Static Output Directory ",
+                self.apidoc_static_dir,
+                " already exists")
+
         try:
             os.mkdir(self.apidoc_config_dir)
             print(" * ApiDoc Config Directory ", self.apidoc_static_dir, " created ")
@@ -185,7 +197,7 @@ class Hunabku:
             args.append('-f')
             args.append(plugin['path'])
         args.append('-o')
-        args.append(self.apidoc_static_dir)
+        args.append(self.apidoc_static_dir+'/apidoc')
         process = subprocess.Popen(args,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
