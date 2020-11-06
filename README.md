@@ -1,24 +1,35 @@
-# HunabKu  / Servidor De Datos /  Maya - padre de todos los Dioses
+<center><img src="https://raw.githubusercontent.com/colav/colav.github.io/master/img/Logo.png"/></center>
+
+# HunabKu  
+Data Server /  Maya - father of all gods
+
+# Description
+Package to load data in MongoDB and to serve the data from mongodb on endpoints using flask. 
+The package is handling the endpoints  using a customized plugin system designed by us.
+
+Modules are:
 PDBS (Paper DataBase Server)
 PDBL  (Paper DataBase Loader)
-PDBM (Paper DataBase Manager) (manejar colecciones - CRUD)
+PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
 
-# Dependencies
-* Install node js
-* Apidocjs https://github.com/apidoc/apidoc 
+# Installation
+
+## Dependencies
+* Install nodejs 
+    * Debian based symtem: `apt-get install nodejs`
+    * Redhat based system: `yum install nodejs`
+
+* Install Apidocjs from https://github.com/apidoc/apidoc
 * The other dependecies can be installed with pip installing this package.
 
-Version 0.0.1-alpha Notes
-* Plugin system implemented
-* Apidoc support
-* Plugins for GSLookUp, GSQuery and GSCites im package Moai craeted
-* setup.py and requerements with fixed versions
-* Old PDBServer completed removed
-* Hunabku supports custom JSON encoder 
-* Support to check syntax of Apidocs in plugins before load it, if it fails, plugin is not loaded
-* Support for decorator in methods to create the endpoints
-* Added plugin por apidoc
-* Added support to check if an endpoint already exists
+## Package
+`pip install hunabku`
+
+# License
+BSD-3-Clause License 
+
+# Links
+http://colav.udea.edu.co/
 
 
 
