@@ -6,6 +6,6 @@
   "url" : "http://clustercien.udea.edu.co:8080/apidoc",
   "sampleUrl" : "http://clustercien.udea.edu.co:8080/",
   "header": {
-    "filename": "etc/apidoc-header.md"
+    "filename": "hunabku/config/apidoc-header.md"
   }
 }
