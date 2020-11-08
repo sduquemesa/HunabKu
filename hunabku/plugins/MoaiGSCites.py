@@ -159,3 +159,31 @@ class MoaiGSCites(HunabkuPluginBase):
             return response
         else:
             return self.apikey_error()
+
+    @endpoint('/moai/gs/cites/invalid', methods=['GET'])
+    def invalid_stage_cites_submit(self):
+        """
+        @api {get} /moai/gs/cites/invalid Submit Invalid Cite
+        @apiName GSCites
+        @apiGroup Moai GSCites
+        @apiDescription Allows to submit invalid cites to the collection stage_cites_invalid in the given database db.
+
+        @apiParam {String} db  Database to use in mongodb
+        @apiParam {Object} data Json with cite data
+        @apiParam {String} apikey  Credential for authentication
+
+        @apiError (Error 401) msg  The HTTP 401 Unauthorized invalid authentication apikey for the target resource.
+        """
+        data = self.request.args.get('data')
+        db = self.request.args.get('db')
+        self.db = self.dbclient[db]
+        if self.valid_apikey():
+            self.db['stage_cites_invalid'].insert(self.json.loads(data))
+            response = self.app.response_class(
+                response=self.json.dumps({}),
+                status=200,
+                mimetype='application/json'
+            )
+            return response
+        else:
+            return self.apikey_error()
