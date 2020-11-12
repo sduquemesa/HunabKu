@@ -18,9 +18,12 @@ PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
 * Install nodejs 
     * Debian based symtem: `apt-get install nodejs`
     * Redhat based system: `yum install nodejs`
-
+    * Conda: `conda install nodejs`
 * Install Apidocjs from https://github.com/apidoc/apidoc
 * The other dependecies can be installed with pip installing this package.
+
+## Package
+`pip install hunabku`
 
 # Usage
 Let's start the server executing
@@ -38,11 +41,6 @@ you can access to the apidoc documentation for the endpoints for example on: htt
 
 if depends of the ip and port that you are providen to hunabku.
 
-
-
-
-## Package
-`pip install hunabku`
 
 # License
 BSD-3-Clause License 
