@@ -122,7 +122,7 @@ class MoaiGSCites(HunabkuPluginBase):
         db = self.request.args.get('db')
         self.db = self.dbclient[db]
         if self.valid_apikey():
-            self.db['stage_cites'].insert(self.json.loads(data))
+            self.db['stage_cites'].insert(self.json.loads(data),check_keys=False)
             response = self.app.response_class(
                 response=self.json.dumps({}),
                 status=200,
