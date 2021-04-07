@@ -16,13 +16,13 @@ PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
 
 ## Dependencies
 * Install nodejs 
-    * Debian based symtem: `apt-get install nodejs`
+    * Debian based system: `apt-get install nodejs`
     * Redhat based system: `yum install nodejs`
     * Conda: `conda install nodejs`
 * Install Apidocjs from https://github.com/apidoc/apidoc
 * The other dependecies can be installed with pip installing this package.
 * Install MongoDB
-    * Debian based symtem: `apt-get install mongodb`
+    * Debian based system: `apt-get install mongodb`
     * Redhat based system instructions [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/)
     * Conda: `conda install mongodb`
 
@@ -31,7 +31,10 @@ NOTE:
 To start mongodb server on conda please run the next steps
 
 `
-mkdir -p $HOME/data/db
+mkdir -p $HOME/data/db 
+`
+
+`
 mongodb mongod --dbpath $HOME/data/db/
 `
 
@@ -52,7 +55,7 @@ where x.x.x.x is your mongodb ip
 
 you can access to the apidoc documentation for the endpoints for example on: http://127.0.1.1:8888/apidoc/index.html
 
-if depends of the ip and port that you are providen to hunabku.
+if depends of the ip and port that you are providing to hunabku.
 
 
 # License
