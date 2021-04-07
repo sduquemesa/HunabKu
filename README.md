@@ -21,6 +21,19 @@ PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
     * Conda: `conda install nodejs`
 * Install Apidocjs from https://github.com/apidoc/apidoc
 * The other dependecies can be installed with pip installing this package.
+* Install MongoDB
+    * Debian based symtem: `apt-get install mongodb`
+    * Redhat based system instructions [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/)
+    * Conda: `conda install mongodb`
+
+NOTE:
+
+To start mongodb server on conda please run the next steps
+
+`
+mkdir -p $HOME/data/db
+mongodb mongod --dbpath $HOME/data/db/
+`
 
 ## Package
 `pip install hunabku`
