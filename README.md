@@ -24,7 +24,7 @@ PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
 * Install MongoDB
     * Debian based system: `apt-get install mongodb`
     * Redhat based system instructions [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/)
-    * Conda: `conda install mongodb`
+    * Conda: `conda install mongodb mongo-tools`
 
 NOTE:
 
