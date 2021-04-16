@@ -18,7 +18,7 @@ PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
 * Install nodejs 
     * Debian based system: `apt-get install nodejs`
     * Redhat based system: `yum install nodejs`
-    * Conda: `conda install nodejs`
+    * Conda: `conda install nodejs==10.13.0`
 * Install Apidocjs from https://github.com/apidoc/apidoc
 * The other dependecies can be installed with pip installing this package.
 * Install MongoDB
