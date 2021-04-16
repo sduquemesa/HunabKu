@@ -15,7 +15,7 @@ PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
 # Installation
 
 ## Dependencies
-* Install nodejs 
+* Install nodejs >=10.x.x ex: 10.13.0
     * Debian based system: `apt-get install nodejs`
     * Redhat based system: `yum install nodejs`
     * Conda: `conda install nodejs==10.13.0`
