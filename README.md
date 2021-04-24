@@ -7,10 +7,6 @@ Data Server Gateway/  Maya - father of all gods
 Package to load data in MongoDB and to serve the data from mongodb on endpoints using flask. 
 The package is handling the endpoints  using a customized plugin system designed by us.
 
-Modules are:
-PDBS (Paper DataBase Server)
-PDBL  (Paper DataBase Loader)
-PDBM (Paper DataBase Manager) (to handle - CRUD) (Not Yet!)
 
 # Installation
 
